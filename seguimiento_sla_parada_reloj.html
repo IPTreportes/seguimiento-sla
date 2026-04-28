@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parada de reloj</title>
+  <style>
+    :root {
+      --bg: #f4f1e8;
+      --panel: #fffdf8;
+      --ink: #172126;
+      --muted: #5e6a71;
+      --line: #d8d1c4;
+      --accent: #0c5f63;
+      --danger: #b13a2e;
+      --warn: #b87417;
+      --ok: #2b6b4e;
+      --danger-soft: #fde7e3;
+      --warn-soft: #fff0d8;
+      --ok-soft: #e3f1e8;
+      --shadow: 0 18px 42px rgba(23, 33, 38, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(12, 95, 99, 0.10), transparent 24%),
+        linear-gradient(180deg, #f8f5ed 0%, #f2ece1 100%);
+      color: var(--ink);
+    }
+    .app {
+      width: min(1450px, calc(100% - 30px));
+      margin: 18px auto 26px;
+    }
+    .hero, .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+    .hero {
+      padding: 28px 30px;
+      margin-bottom: 18px;
+    }
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    h1 { margin: 0; font-size: 34px; line-height: 1.05; }
+    h2 { margin: 0 0 12px; font-size: 22px; }
+    .subtitle {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 16px;
+      max-width: 980px;
+    }
+    .meta { margin-top: 12px; color: var(--muted); font-size: 14px; }
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(247,250,248,0.94));
+    }
+    .card strong { display: block; font-size: 28px; margin-bottom: 6px; }
+    .card span { font-size: 14px; color: var(--muted); }
+    .danger strong { color: var(--danger); }
+    .warn strong { color: var(--warn); }
+    .ok strong { color: var(--ok); }
+    .grid-two {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    .grid-three {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    .panel-body { padding: 22px; }
+    .donut-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 18px;
+      align-items: center;
+    }
+    .donut {
+      width: clamp(170px, 18vw, 220px);
+      height: clamp(170px, 18vw, 220px);
+      border-radius: 50%;
+      position: relative;
+      margin: 0 auto;
+      background: conic-gradient(#d8d1c4 0deg 360deg);
+    }
+    .donut::after {
+      content: "";
+      position: absolute;
+      inset: 28px;
+      background: var(--panel);
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
+    .donut-center {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      z-index: 1;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .donut-center > div {
+      width: min(112px, 52%);
+    }
+    .donut-value {
+      font-size: clamp(24px, 3vw, 30px);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .donut-center span {
+      display: block;
+      font-size: clamp(10px, 1.1vw, 12px);
+      line-height: 1.2;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .legend { display: grid; gap: 10px; }
+    .legend-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      font-size: 14px;
+    }
+    .legend-left { display: flex; align-items: center; gap: 10px; }
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+    }
+    .bar-list, .rank-list, .message-list { display: grid; gap: 12px; }
+    .bar-item, .rank-item, .message {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px 16px;
+      background: #fff;
+    }
+    .bar-head, .rank-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+    .bar-track {
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: #efe9dd;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), #3b8f95);
+    }
+    .rank-meta, .message { color: var(--muted); font-size: 14px; line-height: 1.45; }
+    .message strong { display: block; margin-bottom: 6px; color: var(--accent); }
+    .filters {
+      display: grid;
+      grid-template-columns: 1.2fr repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      padding: 22px;
+      margin-bottom: 18px;
+    }
+    .field label {
+      display: block;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+    .field input, .field select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: #fff;
+      color: var(--ink);
+      font-size: 14px;
+    }
+    .table-wrap { padding: 8px 18px 18px; overflow: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 1480px; }
+    th, td {
+      padding: 12px 10px;
+      text-align: left;
+      border-top: 1px solid var(--line);
+      vertical-align: top;
+      font-size: 14px;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      background: var(--panel);
+      z-index: 1;
+    }
+    tbody tr:hover { background: #faf8f1; }
+    .pill {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .pill.vencido { background: var(--danger-soft); color: var(--danger); }
+    .pill.critico { background: var(--warn-soft); color: var(--warn); }
+    .pill.alerta { background: #f7ecd3; color: #86610b; }
+    .pill.tiempo { background: var(--ok-soft); color: var(--ok); }
+    .footer-note { padding: 0 24px 20px; color: var(--muted); font-size: 13px; }
+    .empty-state { color: var(--muted); }
+    @media (max-width: 1100px) {
+      .kpis, .grid-two, .grid-three, .filters, .donut-layout { grid-template-columns: 1fr; }
+      h1 { font-size: 30px; }
+      .app { width: min(100%, calc(100% - 18px)); }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="hero">
+      <div class="eyebrow">Parada de Reloj</div>
+      <h1>Tickets Automáticos en parada de reloj</h1>
+      <p class="subtitle">
+        Vista gerencial para revisar tickets automáticos que hoy tienen el reloj detenido, cuánto tiempo llevan en PR,
+        dónde se concentra la presión y qué casos quedarían con menor holgura si el PR terminara ahora.
+      </p>
+      <div class="meta" id="meta"></div>
+      <div class="kpis">
+        <div class="card danger"><strong id="kpi-total">0</strong><span>tickets automáticos en parada de reloj</span></div>
+        <div class="card warn"><strong id="kpi-horas">0</strong><span>horas PR acumuladas</span></div>
+        <div class="card ok"><strong id="kpi-prom">0</strong><span>promedio horas PR</span></div>
+        <div class="card warn"><strong id="kpi-abiertos">0</strong><span>tickets con motivo PR activo</span></div>
+        <div class="card danger"><strong id="kpi-holgura">0</strong><span>holgura crítica al salir de PR</span></div>
+      </div>
+    </section>
+
+    <section class="panel filters">
+      <div class="field">
+        <label for="search">Buscar</label>
+        <input id="search" type="text" placeholder="Ticket, sitio, motivo, departamento...">
+      </div>
+      <div class="field">
+        <label for="departamento">Departamento</label>
+        <select id="departamento"></select>
+      </div>
+      <div class="field">
+        <label for="motivo">Motivo PR</label>
+        <select id="motivo"></select>
+      </div>
+      <div class="field">
+        <label for="cluster">Cluster</label>
+        <select id="cluster"></select>
+      </div>
+      <div class="field">
+        <label for="semaforo">Holgura de salida</label>
+        <select id="semaforo"></select>
+      </div>
+    </section>
+
+    <section class="grid-two">
+      <section class="panel panel-body">
+        <h2>Motivos PR más frecuentes</h2>
+        <div class="donut-layout">
+          <div class="donut" id="donut">
+            <div class="donut-center" id="donut-center"></div>
+          </div>
+          <div class="legend" id="legend"></div>
+        </div>
+      </section>
+      <section class="panel panel-body">
+        <h2>Lectura Ejecutiva</h2>
+        <div class="message-list" id="messages"></div>
+      </section>
+    </section>
+
+    <section class="grid-three">
+      <section class="panel panel-body">
+        <h2>Top 10 tickets con más horas PR</h2>
+        <div class="bar-list" id="top-tickets"></div>
+      </section>
+      <section class="panel panel-body">
+        <h2>Top departamentos con más horas PR</h2>
+        <div class="bar-list" id="top-deptos"></div>
+      </section>
+      <section class="panel panel-body">
+        <h2>Top clusters con más tickets en PR</h2>
+        <div class="bar-list" id="top-clusters"></div>
+      </section>
+    </section>
+
+    <section class="panel panel-body" style="margin-bottom:18px;">
+      <h2>Tickets con menor holgura cuando salga el PR</h2>
+      <div class="rank-list" id="menor-holgura"></div>
+    </section>
+
+    <section class="panel">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Ticket</th>
+              <th>Estado</th>
+              <th>Motivo PR activo</th>
+              <th>Horas PR</th>
+              <th>Holgura al salir PR</th>
+              <th>Semáforo salida</th>
+              <th>Horas transcurridas</th>
+              <th>Horas efectivas SLA</th>
+              <th>Fecha solicitud</th>
+              <th>Sitio</th>
+              <th>Cluster</th>
+              <th>SLA horas</th>
+              <th>Departamento</th>
+              <th>Empresa contratista</th>
+              <th>Tipo falla</th>
+              <th>Prioridad</th>
+              <th>Asignado técnico</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="footer-note" id="footer-note"></div>
+    </section>
+  </main>
+
+  <script>
+    const DATA = [{"ticket": "INC-290179", "estado": "En parada de reloj", "motivo_pr_activo": "Repuesto obsoleto", "horas_pr": 10643.49, "holgura_salida_pr": -326.06, "semaforo_salida_pr": "Vencido", "horas_transcurridas": 11065.55, "horas_efectivas_sla": 422.06, "fecha_solicitud_fmt": "2025-01-22 12:19", "sitio": "AM00002", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "AMAZONAS", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-362605", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 9106.93, "holgura_salida_pr": 34.36, "semaforo_salida_pr": "En tiempo", "horas_transcurridas": 9120.57, "horas_efectivas_sla": 13.64, "fecha_solicitud_fmt": "2025-04-13 13:18", "sitio": "AN00059", "cluster": "CLUSTER 6", "sla_horas": 48, "departamento": "ANCASH", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-378342", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 8587.94, "holgura_salida_pr": 10.86, "semaforo_salida_pr": "Seguimiento <= 24h", "horas_transcurridas": 8625.08, "horas_efectivas_sla": 37.14, "fecha_solicitud_fmt": "2025-05-04 04:47", "sitio": "HN00125", "cluster": "CLUSTER 6", "sla_horas": 48, "departamento": "HUANUCO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-430521", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 7217.46, "holgura_salida_pr": -57.42, "semaforo_salida_pr": "Vencido", "horas_transcurridas": 7322.88, "horas_efectivas_sla": 105.42, "fecha_solicitud_fmt": "2025-06-27 10:59", "sitio": "HN00064", "cluster": "CLUSTER 6", "sla_horas": 48, "departamento": "HUANUCO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-433157", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 7143.83, "holgura_salida_pr": -7.94, "semaforo_salida_pr": "Vencido", "horas_transcurridas": 7247.77, "horas_efectivas_sla": 103.94, "fecha_solicitud_fmt": "2025-06-30 14:06", "sitio": "LL00225", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LA LIBERTAD", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-449479", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 6958.35, "holgura_salida_pr": 21.57, "semaforo_salida_pr": "Seguimiento <= 24h", "horas_transcurridas": 6984.78, "horas_efectivas_sla": 26.43, "fecha_solicitud_fmt": "2025-07-11 13:05", "sitio": "CA00165", "cluster": "CLUSTER 6", "sla_horas": 48, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-499407", "estado": "En parada de reloj", "motivo_pr_activo": "Ruta Acceso Saturada", "horas_pr": 5850.74, "holgura_salida_pr": 36.01, "semaforo_salida_pr": "En tiempo", "horas_transcurridas": 5910.73, "horas_efectivas_sla": 59.99, "fecha_solicitud_fmt": "2025-08-25 07:08", "sitio": "LO00126", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-422932", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 5843.25, "holgura_salida_pr": -48.88, "semaforo_salida_pr": "Vencido", "horas_transcurridas": 5988.13, "horas_efectivas_sla": 144.88, "fecha_solicitud_fmt": "2025-08-22 01:44", "sitio": "AN00056", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "ANCASH", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-513105", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 5532.07, "holgura_salida_pr": -72.83, "semaforo_salida_pr": "Vencido", "horas_transcurridas": 5700.9, "horas_efectivas_sla": 168.83, "fecha_solicitud_fmt": "2025-09-03 00:58", "sitio": "LO00184", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-554626", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 4841.58, "holgura_salida_pr": 21.0, "semaforo_salida_pr": "Seguimiento <= 24h", "horas_transcurridas": 4916.58, "horas_efectivas_sla": 75.0, "fecha_solicitud_fmt": "2025-10-05 17:17", "sitio": "AN00067", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "ANCASH", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-630516", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 3334.59, "holgura_salida_pr": -171.53, "semaforo_salida_pr": "Vencido", "horas_transcurridas": 3602.12, "horas_efectivas_sla": 267.53, "fecha_solicitud_fmt": "2025-11-29 11:45", "sitio": "LO00339", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-636229", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 3324.68, "holgura_salida_pr": -88.62, "semaforo_salida_pr": "Vencido", "horas_transcurridas": 3509.3, "horas_efectivas_sla": 184.62, "fecha_solicitud_fmt": "2025-12-03 08:34", "sitio": "CA00332", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-659273", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 2938.02, "holgura_salida_pr": -29.33, "semaforo_salida_pr": "Vencido", "horas_transcurridas": 2991.35, "horas_efectivas_sla": 53.33, "fecha_solicitud_fmt": "2025-12-24 22:31", "sitio": "PI00220", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "PIURA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-665595", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 2678.98, "holgura_salida_pr": -25.14, "semaforo_salida_pr": "Vencido", "horas_transcurridas": 2752.12, "horas_efectivas_sla": 73.14, "fecha_solicitud_fmt": "2026-01-03 21:45", "sitio": "UC00074", "cluster": "CLUSTER 6", "sla_horas": 48, "departamento": "UCAYALI", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-676540", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 2470.06, "holgura_salida_pr": 66.71, "semaforo_salida_pr": "En tiempo", "horas_transcurridas": 2499.35, "horas_efectivas_sla": 29.29, "fecha_solicitud_fmt": "2026-01-14 10:31", "sitio": "CA00123", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-677213", "estado": "En parada de reloj", "motivo_pr_activo": "Fenómenos Climáticos", "horas_pr": 2346.54, "holgura_salida_pr": 86.26, "semaforo_salida_pr": "En tiempo", "horas_transcurridas": 2356.28, "horas_efectivas_sla": 9.74, "fecha_solicitud_fmt": "2026-01-20 09:35", "sitio": "LO00336", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-677624", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 2335.25, "holgura_salida_pr": 51.33, "semaforo_salida_pr": "En tiempo", "horas_transcurridas": 2379.92, "horas_efectivas_sla": 44.67, "fecha_solicitud_fmt": "2026-01-19 09:57", "sitio": "LA00577", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LAMBAYEQUE", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-689185", "estado": "En parada de reloj", "motivo_pr_activo": "Revisión salto anterior", "horas_pr": 2172.45, "holgura_salida_pr": -11.4, "semaforo_salida_pr": "Vencido", "horas_transcurridas": 2189.85, "horas_efectivas_sla": 17.4, "fecha_solicitud_fmt": "2026-01-27 08:01", "sitio": "CA00302", "cluster": "CLUSTER 1", "sla_horas": 6, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "prioridad": "Urgente", "asignado_tecnico": "True"}, {"ticket": "INC-688487", "estado": "En parada de reloj", "motivo_pr_activo": "Repuesto obsoleto", "horas_pr": 2125.01, "holgura_salida_pr": -11.46, "semaforo_salida_pr": "Vencido", "horas_transcurridas": 2232.47, "horas_efectivas_sla": 107.46, "fecha_solicitud_fmt": "2026-01-25 13:24", "sitio": "AN00089", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "ANCASH", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-694249", "estado": "En parada de reloj", "motivo_pr_activo": "Gestión Suministro", "horas_pr": 2034.15, "holgura_salida_pr": 2.8, "semaforo_salida_pr": "Critico <= 4h", "horas_transcurridas": 2055.35, "horas_efectivas_sla": 21.2, "fecha_solicitud_fmt": "2026-02-01 22:31", "sitio": "CA00112", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-677172", "estado": "En parada de reloj", "motivo_pr_activo": "Fenómenos Climáticos", "horas_pr": 1862.09, "holgura_salida_pr": -277.26, "semaforo_salida_pr": "Vencido", "horas_transcurridas": 2235.35, "horas_efectivas_sla": 373.26, "fecha_solicitud_fmt": "2026-01-25 10:31", "sitio": "LO00169", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-701711", "estado": "En parada de reloj", "motivo_pr_activo": "Revisión salto anterior", "horas_pr": 1841.94, "holgura_salida_pr": -9.68, "semaforo_salida_pr": "Vencido", "horas_transcurridas": 1875.62, "horas_efectivas_sla": 33.68, "fecha_solicitud_fmt": "2026-02-09 10:15", "sitio": "AM00142", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "AMAZONAS", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-706937", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 1768.04, "holgura_salida_pr": 60.81, "semaforo_salida_pr": "En tiempo", "horas_transcurridas": 1803.23, "horas_efectivas_sla": 35.19, "fecha_solicitud_fmt": "2026-02-12 10:38", "sitio": "CA00508", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-709693", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 1691.25, "holgura_salida_pr": 81.3, "semaforo_salida_pr": "En tiempo", "horas_transcurridas": 1705.95, "horas_efectivas_sla": 14.7, "fecha_solicitud_fmt": "2026-02-16 11:55", "sitio": "LL00269", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LA LIBERTAD", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-705594", "estado": "En parada de reloj", "motivo_pr_activo": "Repuesto obsoleto", "horas_pr": 1671.9, "holgura_salida_pr": 63.32, "semaforo_salida_pr": "En tiempo", "horas_transcurridas": 1704.58, "horas_efectivas_sla": 32.68, "fecha_solicitud_fmt": "2026-02-16 13:17", "sitio": "AN00054", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "ANCASH", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-707848", "estado": "En parada de reloj", "motivo_pr_activo": "Corte Concesionaria", "horas_pr": 1579.51, "holgura_salida_pr": -102.24, "semaforo_salida_pr": "Vencido", "horas_transcurridas": 1777.75, "horas_efectivas_sla": 198.24, "fecha_solicitud_fmt": "2026-02-13 12:07", "sitio": "HN00030", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "HUANUCO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-713818", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 1451.01, "holgura_salida_pr": 36.18, "semaforo_salida_pr": "En tiempo", "horas_transcurridas": 1510.83, "horas_efectivas_sla": 59.82, "fecha_solicitud_fmt": "2026-02-24 15:02", "sitio": "LO00181", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-700054", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 1450.95, "holgura_salida_pr": -306.38, "semaforo_salida_pr": "Vencido", "horas_transcurridas": 1853.33, "horas_efectivas_sla": 402.38, "fecha_solicitud_fmt": "2026-02-10 08:32", "sitio": "LO00186", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-667931", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 1450.81, "holgura_salida_pr": -1120.79, "semaforo_salida_pr": "Vencido", "horas_transcurridas": 2667.6, "horas_efectivas_sla": 1216.79, "fecha_solicitud_fmt": "2026-01-07 10:16", "sitio": "LO00120", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-694576", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 1435.78, "holgura_salida_pr": -411.1, "semaforo_salida_pr": "Vencido", "horas_transcurridas": 1942.88, "horas_efectivas_sla": 507.1, "fecha_solicitud_fmt": "2026-02-06 14:59", "sitio": "LO00099", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-694578", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 1434.64, "holgura_salida_pr": 87.34, "semaforo_salida_pr": "En tiempo", "horas_transcurridas": 1443.3, "horas_efectivas_sla": 8.66, "fecha_solicitud_fmt": "2026-02-27 10:34", "sitio": "LO00099", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-718308", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 1432.64, "holgura_salida_pr": 35.41, "semaforo_salida_pr": "En tiempo", "horas_transcurridas": 1493.23, "horas_efectivas_sla": 60.59, "fecha_solicitud_fmt": "2026-02-25 08:38", "sitio": "LO00185", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-719619", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 1432.19, "holgura_salida_pr": 73.09, "semaforo_salida_pr": "En tiempo", "horas_transcurridas": 1455.1, "horas_efectivas_sla": 22.91, "fecha_solicitud_fmt": "2026-02-26 22:46", "sitio": "LO00127", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-717646", "estado": "En parada de reloj", "motivo_pr_activo": "Corte Concesionaria", "horas_pr": 1370.41, "holgura_salida_pr": -20.77, "semaforo_salida_pr": "Vencido", "horas_transcurridas": 1439.18, "horas_efectivas_sla": 68.77, "fecha_solicitud_fmt": "2026-02-27 14:41", "sitio": "HN00289", "cluster": "CLUSTER 6", "sla_horas": 48, "departamento": "HUANUCO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-731737", "estado": "En parada de reloj", "motivo_pr_activo": "Corte Concesionaria", "horas_pr": 1186.66, "holgura_salida_pr": -0.61, "semaforo_salida_pr": "Vencido", "horas_transcurridas": 1197.27, "horas_efectivas_sla": 10.61, "fecha_solicitud_fmt": "2026-03-09 16:36", "sitio": "PI00700", "cluster": "CLUSTER 3", "sla_horas": 10, "departamento": "PIURA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "prioridad": "Urgente", "asignado_tecnico": "True"}, {"ticket": "INC-733485", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 1173.41, "holgura_salida_pr": 20.68, "semaforo_salida_pr": "Seguimiento <= 24h", "horas_transcurridas": 1200.73, "horas_efectivas_sla": 27.32, "fecha_solicitud_fmt": "2026-03-09 13:08", "sitio": "CA00387", "cluster": "CLUSTER 6", "sla_horas": 48, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-738147", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 1100.73, "holgura_salida_pr": 47.3, "semaforo_salida_pr": "En tiempo", "horas_transcurridas": 1149.43, "horas_efectivas_sla": 48.7, "fecha_solicitud_fmt": "2026-03-11 16:26", "sitio": "HN00250", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "HUANUCO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-738717", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 1100.46, "holgura_salida_pr": 64.73, "semaforo_salida_pr": "En tiempo", "horas_transcurridas": 1131.73, "horas_efectivas_sla": 31.27, "fecha_solicitud_fmt": "2026-03-12 10:08", "sitio": "LL00182", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LA LIBERTAD", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-497547", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 1079.57, "holgura_salida_pr": 25.99, "semaforo_salida_pr": "En tiempo", "horas_transcurridas": 1149.58, "horas_efectivas_sla": 70.01, "fecha_solicitud_fmt": "2026-03-11 16:17", "sitio": "AN00081", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "ANCASH", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-676266", "estado": "En parada de reloj", "motivo_pr_activo": "Fenómenos Climáticos", "horas_pr": 1069.59, "holgura_salida_pr": -1286.64, "semaforo_salida_pr": "Vencido", "horas_transcurridas": 2452.23, "horas_efectivas_sla": 1382.64, "fecha_solicitud_fmt": "2026-01-16 09:38", "sitio": "AM00001", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "AMAZONAS", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-746128", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 826.49, "holgura_salida_pr": 55.46, "semaforo_salida_pr": "En tiempo", "horas_transcurridas": 867.03, "horas_efectivas_sla": 40.54, "fecha_solicitud_fmt": "2026-03-23 10:50", "sitio": "LL00214", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LA LIBERTAD", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-742438", "estado": "En parada de reloj", "motivo_pr_activo": "Ruta Acceso Saturada", "horas_pr": 777.7, "holgura_salida_pr": 10.87, "semaforo_salida_pr": "Seguimiento <= 24h", "horas_transcurridas": 862.83, "horas_efectivas_sla": 85.13, "fecha_solicitud_fmt": "2026-03-23 15:02", "sitio": "LO00216", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-759011", "estado": "En parada de reloj", "motivo_pr_activo": "Revisión salto anterior", "horas_pr": 639.06, "holgura_salida_pr": 0.11, "semaforo_salida_pr": "Critico <= 4h", "horas_transcurridas": 662.95, "horas_efectivas_sla": 23.89, "fecha_solicitud_fmt": "2026-03-31 22:55", "sitio": "CA00313", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-759388", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 587.57, "holgura_salida_pr": 10.5, "semaforo_salida_pr": "Seguimiento <= 24h", "horas_transcurridas": 601.07, "horas_efectivas_sla": 13.5, "fecha_solicitud_fmt": "2026-04-03 12:48", "sitio": "CA00358", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-758605", "estado": "En parada de reloj", "motivo_pr_activo": "Repuesto no disponible", "horas_pr": 568.2, "holgura_salida_pr": 12.8, "semaforo_salida_pr": "Seguimiento <= 24h", "horas_transcurridas": 603.4, "horas_efectivas_sla": 35.2, "fecha_solicitud_fmt": "2026-04-03 10:28", "sitio": "HN00171", "cluster": "CLUSTER 6", "sla_horas": 48, "departamento": "HUANUCO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-727506", "estado": "En parada de reloj", "motivo_pr_activo": "Ruta Acceso Saturada", "horas_pr": 546.64, "holgura_salida_pr": -680.09, "semaforo_salida_pr": "Vencido", "horas_transcurridas": 1322.73, "horas_efectivas_sla": 776.09, "fecha_solicitud_fmt": "2026-03-04 11:08", "sitio": "LO00198", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-722239", "estado": "En parada de reloj", "motivo_pr_activo": "Ruta Acceso Saturada", "horas_pr": 546.06, "holgura_salida_pr": -704.32, "semaforo_salida_pr": "Vencido", "horas_transcurridas": 1346.38, "horas_efectivas_sla": 800.32, "fecha_solicitud_fmt": "2026-03-03 11:29", "sitio": "LO00155", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-761152", "estado": "En parada de reloj", "motivo_pr_activo": "Desastre natural", "horas_pr": 516.79, "holgura_salida_pr": 11.64, "semaforo_salida_pr": "Seguimiento <= 24h", "horas_transcurridas": 529.15, "horas_efectivas_sla": 12.36, "fecha_solicitud_fmt": "2026-04-06 12:43", "sitio": "HN00036", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "HUANUCO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-761359", "estado": "En parada de reloj", "motivo_pr_activo": "Repuesto no disponible", "horas_pr": 516.46, "holgura_salida_pr": 0.81, "semaforo_salida_pr": "Critico <= 4h", "horas_transcurridas": 539.65, "horas_efectivas_sla": 23.19, "fecha_solicitud_fmt": "2026-04-06 02:13", "sitio": "LO00060", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-763445", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 490.85, "holgura_salida_pr": 30.57, "semaforo_salida_pr": "En tiempo", "horas_transcurridas": 508.28, "horas_efectivas_sla": 17.43, "fecha_solicitud_fmt": "2026-04-07 09:35", "sitio": "SM00184", "cluster": "CLUSTER 6", "sla_horas": 48, "departamento": "SAN MARTIN", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-759191", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 419.18, "holgura_salida_pr": 56.98, "semaforo_salida_pr": "En tiempo", "horas_transcurridas": 458.2, "horas_efectivas_sla": 39.02, "fecha_solicitud_fmt": "2026-04-09 11:40", "sitio": "CA00303", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-767149", "estado": "En parada de reloj", "motivo_pr_activo": "Contrato vencido", "horas_pr": 371.9, "holgura_salida_pr": 11.6, "semaforo_salida_pr": "Seguimiento <= 24h", "horas_transcurridas": 384.3, "horas_efectivas_sla": 12.4, "fecha_solicitud_fmt": "2026-04-12 13:34", "sitio": "AM00246", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "AMAZONAS", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-776779", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 185.85, "holgura_salida_pr": 40.88, "semaforo_salida_pr": "En tiempo", "horas_transcurridas": 192.97, "horas_efectivas_sla": 7.12, "fecha_solicitud_fmt": "2026-04-20 12:54", "sitio": "SM00401", "cluster": "CLUSTER 6", "sla_horas": 48, "departamento": "SAN MARTIN", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-663235", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 176.02, "holgura_salida_pr": -207.75, "semaforo_salida_pr": "Vencido", "horas_transcurridas": 479.77, "horas_efectivas_sla": 303.75, "fecha_solicitud_fmt": "2026-04-08 14:06", "sitio": "LO00079", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-759201", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 135.17, "holgura_salida_pr": 70.87, "semaforo_salida_pr": "En tiempo", "horas_transcurridas": 160.3, "horas_efectivas_sla": 25.13, "fecha_solicitud_fmt": "2026-04-21 21:34", "sitio": "SM00147", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "SAN MARTIN", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-775131", "estado": "En parada de reloj", "motivo_pr_activo": "Falta de pago de alquiler", "horas_pr": 116.42, "holgura_salida_pr": 89.1, "semaforo_salida_pr": "En tiempo", "horas_transcurridas": 123.32, "horas_efectivas_sla": 6.9, "fecha_solicitud_fmt": "2026-04-23 10:33", "sitio": "CA00279", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-778893", "estado": "En parada de reloj", "motivo_pr_activo": "Falta de pago de energía", "horas_pr": 85.76, "holgura_salida_pr": 16.08, "semaforo_salida_pr": "Seguimiento <= 24h", "horas_transcurridas": 93.68, "horas_efectivas_sla": 7.92, "fecha_solicitud_fmt": "2026-04-24 16:11", "sitio": "AM00090", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "AMAZONAS", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-663238", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 84.9, "holgura_salida_pr": 86.47, "semaforo_salida_pr": "En tiempo", "horas_transcurridas": 94.43, "horas_efectivas_sla": 9.53, "fecha_solicitud_fmt": "2026-04-24 15:26", "sitio": "LO00079", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-764400", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 84.46, "holgura_salida_pr": 20.33, "semaforo_salida_pr": "Seguimiento <= 24h", "horas_transcurridas": 160.13, "horas_efectivas_sla": 75.67, "fecha_solicitud_fmt": "2026-04-21 21:44", "sitio": "HN00041", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "HUANUCO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-777058", "estado": "En parada de reloj", "motivo_pr_activo": "Ruta Acceso Saturada", "horas_pr": 35.82, "holgura_salida_pr": 34.04, "semaforo_salida_pr": "En tiempo", "horas_transcurridas": 97.78, "horas_efectivas_sla": 61.96, "fecha_solicitud_fmt": "2026-04-24 12:05", "sitio": "AM00118", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "AMAZONAS", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-782339", "estado": "En parada de reloj", "motivo_pr_activo": "Daño Terceros", "horas_pr": 34.19, "holgura_salida_pr": -75.08, "semaforo_salida_pr": "Vencido", "horas_transcurridas": 133.27, "horas_efectivas_sla": 99.08, "fecha_solicitud_fmt": "2026-04-23 00:36", "sitio": "SM00605", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "SAN MARTIN", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-784982", "estado": "En parada de reloj", "motivo_pr_activo": "Corte Concesionaria", "horas_pr": 13.85, "holgura_salida_pr": 11.83, "semaforo_salida_pr": "Seguimiento <= 24h", "horas_transcurridas": 26.02, "horas_efectivas_sla": 12.17, "fecha_solicitud_fmt": "2026-04-27 11:51", "sitio": "PI00228", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "PIURA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-730234", "estado": "En parada de reloj", "motivo_pr_activo": "Caso comité críticos", "horas_pr": 13.81, "holgura_salida_pr": 70.61, "semaforo_salida_pr": "En tiempo", "horas_transcurridas": 39.2, "horas_efectivas_sla": 25.39, "fecha_solicitud_fmt": "2026-04-26 22:40", "sitio": "LO00128", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-783075", "estado": "En parada de reloj", "motivo_pr_activo": "Riesgo para la Seguridad", "horas_pr": 12.62, "holgura_salida_pr": 8.34, "semaforo_salida_pr": "Seguimiento <= 24h", "horas_transcurridas": 28.28, "horas_efectivas_sla": 15.66, "fecha_solicitud_fmt": "2026-04-27 09:35", "sitio": "SM00681", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "SAN MARTIN", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-782341", "estado": "En parada de reloj", "motivo_pr_activo": "Daño Terceros", "horas_pr": 11.92, "holgura_salida_pr": 6.04, "semaforo_salida_pr": "Alerta <= 8h", "horas_transcurridas": 29.88, "horas_efectivas_sla": 17.96, "fecha_solicitud_fmt": "2026-04-27 07:59", "sitio": "SM00605", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "SAN MARTIN", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-782340", "estado": "En parada de reloj", "motivo_pr_activo": "Daño Terceros", "horas_pr": 11.89, "holgura_salida_pr": 5.99, "semaforo_salida_pr": "Alerta <= 8h", "horas_transcurridas": 29.9, "horas_efectivas_sla": 18.01, "fecha_solicitud_fmt": "2026-04-27 07:58", "sitio": "SM00605", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "SAN MARTIN", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-782749", "estado": "En parada de reloj", "motivo_pr_activo": "Fenómenos Climáticos", "horas_pr": 11.36, "holgura_salida_pr": 10.19, "semaforo_salida_pr": "Seguimiento <= 24h", "horas_transcurridas": 25.17, "horas_efectivas_sla": 13.81, "fecha_solicitud_fmt": "2026-04-27 12:42", "sitio": "CA00669", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-788220", "estado": "En parada de reloj", "motivo_pr_activo": "Corte Concesionaria", "horas_pr": 0.0, "holgura_salida_pr": 5.18, "semaforo_salida_pr": "Alerta <= 8h", "horas_transcurridas": 6.82, "horas_efectivas_sla": 6.82, "fecha_solicitud_fmt": "2026-04-28 07:03", "sitio": "CA00285", "cluster": "CLUSTER 4", "sla_horas": 12, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "prioridad": "Urgente", "asignado_tecnico": "True"}, {"ticket": "INC-788146", "estado": "En parada de reloj", "motivo_pr_activo": "Corte Concesionaria", "horas_pr": 0.0, "holgura_salida_pr": 83.57, "semaforo_salida_pr": "En tiempo", "horas_transcurridas": 12.43, "horas_efectivas_sla": 12.43, "fecha_solicitud_fmt": "2026-04-28 01:26", "sitio": "nan", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia Grupal", "prioridad": "Urgente", "asignado_tecnico": "True"}];
+    const SUMMARY = {"corte": "2026-04-28 13:53", "total": 69, "horas_pr_total": 133889.89, "horas_pr_prom": 1940.43, "pr_abiertos": 69, "holgura_critica": 27, "top_tickets": [{"ticket": "INC-290179", "sitio": "AM00002", "departamento": "AMAZONAS", "cluster": "CLUSTER 7", "horas_pr": 10643.49, "motivo_pr_activo": "Repuesto obsoleto"}, {"ticket": "INC-362605", "sitio": "AN00059", "departamento": "ANCASH", "cluster": "CLUSTER 6", "horas_pr": 9106.93, "motivo_pr_activo": "Caso comité críticos"}, {"ticket": "INC-378342", "sitio": "HN00125", "departamento": "HUANUCO", "cluster": "CLUSTER 6", "horas_pr": 8587.94, "motivo_pr_activo": "Caso comité críticos"}, {"ticket": "INC-430521", "sitio": "HN00064", "departamento": "HUANUCO", "cluster": "CLUSTER 6", "horas_pr": 7217.46, "motivo_pr_activo": "Caso comité críticos"}, {"ticket": "INC-433157", "sitio": "LL00225", "departamento": "LA LIBERTAD", "cluster": "CLUSTER 7", "horas_pr": 7143.83, "motivo_pr_activo": "Caso comité críticos"}, {"ticket": "INC-449479", "sitio": "CA00165", "departamento": "CAJAMARCA", "cluster": "CLUSTER 6", "horas_pr": 6958.35, "motivo_pr_activo": "Caso comité críticos"}, {"ticket": "INC-499407", "sitio": "LO00126", "departamento": "LORETO", "cluster": "CLUSTER 7", "horas_pr": 5850.74, "motivo_pr_activo": "Ruta Acceso Saturada"}], "motivos": [{"motivo_pr_activo": "Caso comité críticos", "tickets": 37}, {"motivo_pr_activo": "Corte Concesionaria", "tickets": 6}, {"motivo_pr_activo": "Ruta Acceso Saturada", "tickets": 5}, {"motivo_pr_activo": "Fenómenos Climáticos", "tickets": 4}, {"motivo_pr_activo": "Daño Terceros", "tickets": 3}, {"motivo_pr_activo": "Repuesto obsoleto", "tickets": 3}, {"motivo_pr_activo": "Revisión salto anterior", "tickets": 3}, {"motivo_pr_activo": "Repuesto no disponible", "tickets": 2}, {"motivo_pr_activo": "Contrato vencido", "tickets": 1}, {"motivo_pr_activo": "Desastre natural", "tickets": 1}], "deptos": [{"departamento": "LORETO", "horas_pr": 31675.64, "tickets": 19}, {"departamento": "ANCASH", "horas_pr": 24668.24, "tickets": 6}, {"departamento": "CAJAMARCA", "horas_pr": 21674.73, "tickets": 14}, {"departamento": "HUANUCO", "horas_pr": 21025.5, "tickets": 8}, {"departamento": "AMAZONAS", "horas_pr": 14048.5, "tickets": 6}, {"departamento": "LA LIBERTAD", "horas_pr": 10762.03, "tickets": 4}, {"departamento": "PIURA", "horas_pr": 4138.53, "tickets": 3}], "clusters": [{"cluster": "CLUSTER 7", "tickets": 41, "horas_pr": 82564.92}, {"cluster": "CLUSTER 5", "tickets": 15, "horas_pr": 9627.48}, {"cluster": "CLUSTER 6", "tickets": 10, "horas_pr": 38338.380000000005}, {"cluster": "CLUSTER 1", "tickets": 1, "horas_pr": 2172.45}, {"cluster": "CLUSTER 3", "tickets": 1, "horas_pr": 1186.66}, {"cluster": "CLUSTER 4", "tickets": 1, "horas_pr": 0.0}, {"cluster": "Sin dato", "tickets": 0, "horas_pr": 0}], "menor_holgura": [{"ticket": "INC-759011", "sitio": "CA00313", "departamento": "CAJAMARCA", "cluster": "CLUSTER 5", "holgura_salida_pr": 0.11, "horas_pr": 639.06, "motivo_pr_activo": "Revisión salto anterior"}, {"ticket": "INC-761359", "sitio": "LO00060", "departamento": "LORETO", "cluster": "CLUSTER 5", "holgura_salida_pr": 0.81, "horas_pr": 516.46, "motivo_pr_activo": "Repuesto no disponible"}, {"ticket": "INC-694249", "sitio": "CA00112", "departamento": "CAJAMARCA", "cluster": "CLUSTER 5", "holgura_salida_pr": 2.8, "horas_pr": 2034.15, "motivo_pr_activo": "Gestión Suministro"}, {"ticket": "INC-788220", "sitio": "CA00285", "departamento": "CAJAMARCA", "cluster": "CLUSTER 4", "holgura_salida_pr": 5.18, "horas_pr": 0.0, "motivo_pr_activo": "Corte Concesionaria"}, {"ticket": "INC-782340", "sitio": "SM00605", "departamento": "SAN MARTIN", "cluster": "CLUSTER 5", "holgura_salida_pr": 5.99, "horas_pr": 11.89, "motivo_pr_activo": "Daño Terceros"}, {"ticket": "INC-782341", "sitio": "SM00605", "departamento": "SAN MARTIN", "cluster": "CLUSTER 5", "holgura_salida_pr": 6.04, "horas_pr": 11.92, "motivo_pr_activo": "Daño Terceros"}, {"ticket": "INC-783075", "sitio": "SM00681", "departamento": "SAN MARTIN", "cluster": "CLUSTER 5", "holgura_salida_pr": 8.34, "horas_pr": 12.62, "motivo_pr_activo": "Riesgo para la Seguridad"}], "top_departamento": "LORETO", "top_cluster": "CLUSTER 7", "top_motivo": "Caso comité críticos"};
+    const COLORS = ["#b13a2e", "#b87417", "#d4a017", "#5f8f3f", "#2b6b4e", "#0c5f63", "#7b8ea3", "#8c6d46", "#9a4d72", "#61764a"];
+    const searchEl = document.getElementById("search");
+    const departamentoEl = document.getElementById("departamento");
+    const motivoEl = document.getElementById("motivo");
+    const clusterEl = document.getElementById("cluster");
+    const semaforoEl = document.getElementById("semaforo");
+    const rowsEl = document.getElementById("rows");
+
+    function uniqueValues(key) {
+      return ["Todos"].concat([...new Set(DATA.map(item => item[key] || "").filter(Boolean))].sort());
+    }
+
+    function fillSelect(select, values) {
+      select.innerHTML = values.map(value => `<option value="${value}">${value}</option>`).join("");
+    }
+
+    function updateSelect(select, values) {
+      const current = select.value || "Todos";
+      fillSelect(select, values);
+      if (values.includes(current)) {
+        select.value = current;
+      }
+    }
+
+    function num(value) {
+      if (value === "" || value == null || Number.isNaN(Number(value))) return "";
+      return Number(value).toFixed(2);
+    }
+
+    function pillClass(status) {
+      if (status === "Vencido") return "vencido";
+      if (status === "Critico <= 4h") return "critico";
+      if (status === "Alerta <= 8h" || status === "Seguimiento <= 24h") return "alerta";
+      return "tiempo";
+    }
+
+    function renderKpis(rows) {
+      const total = rows.length;
+      const horas = rows.reduce((acc, row) => acc + Number(row.horas_pr || 0), 0);
+      const promedio = total ? horas / total : 0;
+      const activos = rows.filter(row => row.motivo_pr_activo && row.motivo_pr_activo !== "Sin motivo PR").length;
+      const holguraCritica = rows.filter(row => Number(row.holgura_salida_pr) <= 4).length;
+      document.getElementById("kpi-total").textContent = total;
+      document.getElementById("kpi-horas").textContent = horas.toFixed(2);
+      document.getElementById("kpi-prom").textContent = promedio.toFixed(2);
+      document.getElementById("kpi-abiertos").textContent = activos;
+      document.getElementById("kpi-holgura").textContent = holguraCritica;
+    }
+
+    function buildDonut(rows) {
+      const grouped = {};
+      rows.forEach(row => {
+        const key = row.motivo_pr_activo || "Sin motivo PR";
+        grouped[key] = (grouped[key] || 0) + 1;
+      });
+      const items = Object.entries(grouped)
+        .map(([motivo_pr_activo, tickets]) => ({ motivo_pr_activo, tickets }))
+        .sort((a, b) => b.tickets - a.tickets)
+        .slice(0, 10);
+      const total = items.reduce((acc, item) => acc + item.tickets, 0) || 1;
+      let cursor = 0;
+      const parts = items.map((item, idx) => {
+        const size = (item.tickets / total) * 360;
+        const start = cursor;
+        const end = cursor + size;
+        cursor = end;
+        return `${COLORS[idx % COLORS.length]} ${start}deg ${end}deg`;
+      });
+      document.getElementById("donut").style.background = `conic-gradient(${parts.length ? parts.join(", ") : "#d8d1c4 0deg 360deg"})`;
+      document.getElementById("donut-center").innerHTML = `<div><div class="donut-value">${rows.length}</div><span>tickets automáticos en PR</span></div>`;
+      document.getElementById("legend").innerHTML = items.length
+        ? items.map((item, idx) => `
+            <div class="legend-item">
+              <div class="legend-left">
+                <span class="swatch" style="background:${COLORS[idx % COLORS.length]};"></span>
+                <span>${item.motivo_pr_activo}</span>
+              </div>
+              <strong>${item.tickets}</strong>
+            </div>
+          `).join("")
+        : '<div class="empty-state">Sin motivos PR registrados.</div>';
+    }
+
+    function padItems(items, size, filler) {
+      const result = items.slice(0, size);
+      while (result.length < size) result.push({ ...filler });
+      return result;
+    }
+
+    function renderBarList(targetId, items, labelKey, valueKey, unit = "") {
+      const target = document.getElementById(targetId);
+      const padded = padItems(items, 7, { [labelKey]: "Sin dato", [valueKey]: 0 });
+      const maxValue = Math.max(...padded.map(item => Number(item[valueKey] || 0)), 1);
+      target.innerHTML = padded.map(item => {
+        const value = Number(item[valueKey] || 0);
+        const width = Math.max(6, (value / maxValue) * 100);
+        return `
+          <div class="bar-item">
+            <div class="bar-head">
+              <strong>${item[labelKey]}</strong>
+              <span>${num(value)}${unit}</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:${width}%;"></div></div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderMessages(rows) {
+      const motivoCounts = aggregateCounts(rows, "motivo_pr_activo").sort((a, b) => b.tickets - a.tickets);
+      const deptoHours = aggregateSums(rows, "departamento", "horas_pr");
+      const topMotivo = motivoCounts[0]?.label || "Sin datos";
+      const topDepartamento = deptoHours.sort((a, b) => b.value - a.value)[0]?.label || "Sin datos";
+      const holguraCritica = rows.filter(row => Number(row.holgura_salida_pr) <= 4).length;
+      document.getElementById("messages").innerHTML = `
+        <div class="message">
+          <strong>Volumen detenido</strong>
+          Hay ${rows.length} tickets automáticos en parada de reloj con ${num(rows.reduce((acc, row) => acc + Number(row.horas_pr || 0), 0))} horas PR acumuladas.
+        </div>
+        <div class="message">
+          <strong>Principal causa actual</strong>
+          El motivo PR más frecuente es ${topMotivo}, mientras ${topDepartamento} concentra la mayor carga territorial.
+        </div>
+        <div class="message">
+          <strong>Riesgo de reactivación</strong>
+          ${holguraCritica} tickets quedarían con 4 horas o menos de holgura si el reloj se reactivara ahora.
+        </div>
+      `;
+    }
+
+    function aggregateCounts(rows, key) {
+      const counts = {};
+      rows.forEach(row => {
+        const label = row[key] || "Sin dato";
+        counts[label] = (counts[label] || 0) + 1;
+      });
+      return Object.entries(counts).map(([label, tickets]) => ({ label, tickets }));
+    }
+
+    function aggregateSums(rows, key, valueKey) {
+      const sums = {};
+      rows.forEach(row => {
+        const label = row[key] || "Sin dato";
+        sums[label] = (sums[label] || 0) + Number(row[valueKey] || 0);
+      });
+      return Object.entries(sums).map(([label, value]) => ({ label, value }));
+    }
+
+    function renderDerivedBlocks(rows) {
+      buildDonut(rows);
+      renderMessages(rows);
+
+      const topTickets = rows
+        .slice()
+        .sort((a, b) => Number(b.horas_pr || 0) - Number(a.horas_pr || 0) || Number(a.holgura_salida_pr || 0) - Number(b.holgura_salida_pr || 0))
+        .slice(0, 7)
+        .map(row => ({
+          ticket: row.ticket,
+          horas_pr: Number(row.horas_pr || 0)
+        }));
+      renderBarList("top-tickets", topTickets, "ticket", "horas_pr", " h");
+
+      const deptos = aggregateSums(rows, "departamento", "horas_pr")
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 7)
+        .map(item => ({ departamento: item.label, horas_pr: item.value }));
+      renderBarList("top-deptos", deptos, "departamento", "horas_pr", " h");
+
+      const clusters = aggregateCounts(rows, "cluster")
+        .sort((a, b) => b.tickets - a.tickets)
+        .slice(0, 7)
+        .map(item => ({ cluster: item.label, tickets: item.tickets }));
+      renderBarList("top-clusters", clusters, "cluster", "tickets", "");
+
+      const menorHolgura = padItems(
+        rows
+          .filter(row => Number(row.holgura_salida_pr) >= 0)
+          .slice()
+          .sort((a, b) => Number(a.holgura_salida_pr || 0) - Number(b.holgura_salida_pr || 0) || Number(b.horas_pr || 0) - Number(a.horas_pr || 0))
+          .slice(0, 7),
+        7,
+        { ticket: "Sin dato", sitio: "", departamento: "", cluster: "", holgura_salida_pr: 0, horas_pr: 0, motivo_pr_activo: "" }
+      );
+      document.getElementById("menor-holgura").innerHTML = menorHolgura.map((item, idx) => `
+        <div class="rank-item">
+          <div class="rank-head">
+            <strong>${idx + 1}. ${item.ticket}</strong>
+            <span>${num(item.holgura_salida_pr)} h</span>
+          </div>
+          <div class="rank-meta">${item.sitio} | ${item.departamento} | ${item.cluster}</div>
+          <div class="rank-meta">Horas PR: ${num(item.horas_pr)} | Motivo PR: ${item.motivo_pr_activo}</div>
+        </div>
+      `).join("");
+    }
+
+    function buildRows(rows) {
+      rowsEl.innerHTML = rows.map(row => `
+        <tr>
+          <td>${row.ticket}</td>
+          <td>${row.estado}</td>
+          <td>${row.motivo_pr_activo}</td>
+          <td>${num(row.horas_pr)}</td>
+          <td>${num(row.holgura_salida_pr)}</td>
+          <td><span class="pill ${pillClass(row.semaforo_salida_pr)}">${row.semaforo_salida_pr}</span></td>
+          <td>${num(row.horas_transcurridas)}</td>
+          <td>${num(row.horas_efectivas_sla)}</td>
+          <td>${row.fecha_solicitud_fmt}</td>
+          <td>${row.sitio}</td>
+          <td>${row.cluster}</td>
+          <td>${num(row.sla_horas)}</td>
+          <td>${row.departamento}</td>
+          <td>${row.empresa_contratista}</td>
+          <td>${row.tipo_falla}</td>
+          <td>${row.prioridad}</td>
+          <td>${row.asignado_tecnico}</td>
+        </tr>
+      `).join("");
+    }
+
+    function filteredRows(overrides = {}) {
+      const text = searchEl.value.trim().toLowerCase();
+      const departamento = overrides.departamento ?? departamentoEl.value;
+      const motivo = overrides.motivo ?? motivoEl.value;
+      const cluster = overrides.cluster ?? clusterEl.value;
+      const semaforo = overrides.semaforo ?? semaforoEl.value;
+
+      return DATA.filter(row => {
+        const hayTexto = !text || Object.values(row).join(" ").toLowerCase().includes(text);
+        const matchDepartamento = departamento === "Todos" || row.departamento === departamento;
+        const matchMotivo = motivo === "Todos" || row.motivo_pr_activo === motivo;
+        const matchCluster = cluster === "Todos" || row.cluster === cluster;
+        const matchSemaforo = semaforo === "Todos" || row.semaforo_salida_pr === semaforo;
+        return hayTexto && matchDepartamento && matchMotivo && matchCluster && matchSemaforo;
+      });
+    }
+
+    function applyFilters() {
+      const rows = filteredRows();
+
+      updateSelect(departamentoEl, ["Todos", ...new Set(filteredRows({ motivo: "Todos" }).map(row => row.departamento).filter(Boolean))].sort());
+      updateSelect(motivoEl, ["Todos", ...new Set(filteredRows({ departamento: "Todos" }).map(row => row.motivo_pr_activo).filter(Boolean))].sort());
+      updateSelect(clusterEl, ["Todos", ...new Set(filteredRows({}).map(row => row.cluster).filter(Boolean))].sort());
+      updateSelect(semaforoEl, ["Todos", ...new Set(filteredRows({}).map(row => row.semaforo_salida_pr).filter(Boolean))].sort());
+
+      renderKpis(rows);
+      renderDerivedBlocks(rows);
+      buildRows(rows);
+      document.getElementById("footer-note").textContent =
+        `Mostrando ${rows.length} de ${DATA.length} tickets automáticos en parada de reloj.`;
+    }
+
+    fillSelect(departamentoEl, uniqueValues("departamento"));
+    fillSelect(motivoEl, uniqueValues("motivo_pr_activo"));
+    fillSelect(clusterEl, uniqueValues("cluster"));
+    fillSelect(semaforoEl, uniqueValues("semaforo_salida_pr"));
+
+    document.getElementById("meta").textContent =
+      `Corte generado: ${SUMMARY.corte} | Top departamento: ${SUMMARY.top_departamento} | Top cluster: ${SUMMARY.top_cluster}`;
+
+    [searchEl, departamentoEl, motivoEl, clusterEl, semaforoEl].forEach(el => {
+      el.addEventListener("input", applyFilters);
+      el.addEventListener("change", applyFilters);
+    });
+
+    renderKpis(DATA);
+    renderDerivedBlocks(DATA);
+    buildRows(DATA);
+    document.getElementById("footer-note").textContent =
+      `Mostrando ${DATA.length} de ${DATA.length} tickets automáticos en parada de reloj.`;
+  </script>
+</body>
+</html>

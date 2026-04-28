@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seguimiento SLA</title>
+  <style>
+    :root {
+      --bg: #f4f1e8;
+      --panel: #fffdf8;
+      --ink: #172126;
+      --muted: #5e6a71;
+      --line: #d8d1c4;
+      --accent: #0c5f63;
+      --accent-soft: #dceef0;
+      --danger: #b13a2e;
+      --warn: #b87417;
+      --ok: #2b6b4e;
+      --danger-soft: #fde7e3;
+      --warn-soft: #fff0d8;
+      --ok-soft: #e3f1e8;
+      --shadow: 0 18px 42px rgba(23, 33, 38, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(12, 95, 99, 0.10), transparent 24%),
+        linear-gradient(180deg, #f8f5ed 0%, #f2ece1 100%);
+      color: var(--ink);
+    }
+    .app {
+      width: min(1450px, calc(100% - 30px));
+      margin: 18px auto 26px;
+    }
+    .hero, .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+    .hero {
+      padding: 28px 30px;
+      margin-bottom: 18px;
+    }
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 34px;
+      line-height: 1.05;
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 22px;
+    }
+    .subtitle {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 16px;
+      max-width: 920px;
+    }
+    .meta {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(247,250,248,0.94));
+    }
+    .card strong {
+      display: block;
+      font-size: 28px;
+      margin-bottom: 6px;
+    }
+    .card span {
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .danger strong { color: var(--danger); }
+    .warn strong { color: var(--warn); }
+    .ok strong { color: var(--ok); }
+    .executive-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    .executive-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 20px;
+      align-items: center;
+    }
+    .donut-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .donut {
+      width: clamp(170px, 18vw, 220px);
+      height: clamp(170px, 18vw, 220px);
+      border-radius: 50%;
+      position: relative;
+    }
+    .donut::after {
+      content: "";
+      position: absolute;
+      inset: 28px;
+      background: var(--panel);
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
+    .donut-center {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      z-index: 1;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .donut-center > div {
+      width: min(112px, 52%);
+    }
+    .donut-value {
+      font-size: clamp(24px, 3vw, 30px);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .donut-center span {
+      display: block;
+      font-size: clamp(10px, 1.1vw, 12px);
+      line-height: 1.2;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .legend {
+      display: grid;
+      gap: 10px;
+    }
+    .legend-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      font-size: 14px;
+    }
+    .legend-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+    }
+    .message-list {
+      display: grid;
+      gap: 12px;
+    }
+    .message {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(243,248,245,0.92));
+    }
+    .message strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--accent);
+    }
+    .ranking-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    .rank-list {
+      display: grid;
+      gap: 12px;
+    }
+    .rank-item {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px 16px;
+      background: #fff;
+    }
+    .rank-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+    .rank-head strong {
+      font-size: 16px;
+    }
+    .rank-head span {
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .rank-meta {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .filters {
+      display: grid;
+      grid-template-columns: 1.2fr repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      padding: 22px;
+      margin-bottom: 18px;
+    }
+    .field label {
+      display: block;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+    .field input, .field select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: #fff;
+      color: var(--ink);
+      font-size: 14px;
+    }
+    .table-wrap {
+      padding: 8px 18px 18px;
+      overflow: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1380px;
+    }
+    th, td {
+      padding: 12px 10px;
+      text-align: left;
+      border-top: 1px solid var(--line);
+      vertical-align: top;
+      font-size: 14px;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      background: var(--panel);
+      z-index: 1;
+    }
+    tbody tr:hover {
+      background: #faf8f1;
+    }
+    .pill {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .pill.vencido { background: var(--danger-soft); color: var(--danger); }
+    .pill.critico { background: var(--warn-soft); color: var(--warn); }
+    .pill.alerta { background: #f7ecd3; color: #86610b; }
+    .pill.tiempo { background: var(--ok-soft); color: var(--ok); }
+    .footer-note {
+      padding: 0 24px 20px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    @media (max-width: 1100px) {
+      .kpis, .executive-grid, .ranking-grid, .filters, .executive-layout {
+        grid-template-columns: 1fr;
+      }
+      h1 { font-size: 30px; }
+      .app { width: min(100%, calc(100% - 18px)); }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="hero">
+      <div class="eyebrow">Seguimiento SLA</div>
+      <h1>Tickets Automáticos con cálculo SLA actualizado</h1>
+      <p class="subtitle">
+        Vista ejecutiva y operativa para monitorear tickets automáticos no finalizados, descontando tiempos en PR y recalculando el estado
+        de SLA con la hora exacta en que se genera el tablero.
+      </p>
+      <div class="meta" id="meta"></div>
+      <div class="kpis">
+        <div class="card danger"><strong id="kpi-total">0</strong><span>tickets automáticos no finalizados</span></div>
+        <div class="card danger"><strong id="kpi-vencidos">0</strong><span>vencidos</span></div>
+        <div class="card warn"><strong id="kpi-4h">0</strong><span>crítico <= 4h</span></div>
+        <div class="card warn"><strong id="kpi-8h">0</strong><span>alerta <= 8h</span></div>
+        <div class="card ok"><strong id="kpi-24h">0</strong><span>seguimiento <= 24h</span></div>
+        <div class="card ok"><strong id="kpi-tiempo">0</strong><span>en tiempo</span></div>
+      </div>
+    </section>
+
+    <section class="panel filters">
+      <div class="field">
+        <label for="search">Buscar</label>
+        <input id="search" type="text" placeholder="Ticket, sitio, motivo, técnico...">
+      </div>
+      <div class="field">
+        <label for="semaforo">Semáforo</label>
+        <select id="semaforo"></select>
+      </div>
+      <div class="field">
+        <label for="cluster">Cluster</label>
+        <select id="cluster"></select>
+      </div>
+      <div class="field">
+        <label for="departamento">Departamento</label>
+        <select id="departamento"></select>
+      </div>
+      <div class="field">
+        <label for="estado">Estado ticket</label>
+        <select id="estado"></select>
+      </div>
+    </section>
+
+    <section class="executive-grid">
+      <section class="panel" style="padding:22px;">
+        <h2>Distribución por Semáforo</h2>
+        <div class="executive-layout">
+          <div class="donut-wrap">
+            <div class="donut" id="donut">
+              <div class="donut-center" id="donut-center"></div>
+            </div>
+          </div>
+          <div class="legend" id="legend"></div>
+        </div>
+      </section>
+      <section class="panel" style="padding:22px;">
+        <h2>Lectura Ejecutiva</h2>
+        <div class="message-list" id="executive-messages"></div>
+      </section>
+    </section>
+
+    <section class="ranking-grid">
+      <section class="panel" style="padding:22px;">
+        <h2>Top 5 Próximos a Vencer</h2>
+        <div class="rank-list" id="top-upcoming"></div>
+      </section>
+      <section class="panel" style="padding:22px;">
+        <h2>Top 5 Clusters con Mayor Presión</h2>
+        <div class="rank-list" id="top-clusters"></div>
+      </section>
+    </section>
+
+    <section class="panel">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Ticket</th>
+              <th>Estado</th>
+              <th>Semáforo</th>
+              <th>Horas restantes</th>
+              <th>Horas transcurridas</th>
+              <th>Horas PR</th>
+              <th>Horas efectivas SLA</th>
+              <th>Fecha solicitud</th>
+              <th>Fecha límite SLA</th>
+              <th>Sitio</th>
+              <th>Cluster</th>
+              <th>SLA horas</th>
+              <th>Departamento</th>
+              <th>Empresa contratista</th>
+              <th>Tipo falla</th>
+              <th>Motivo</th>
+              <th>Prioridad</th>
+              <th>Asignado técnico</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="footer-note" id="footer-note"></div>
+    </section>
+  </main>
+
+  <script>
+    const DATA = [{"ticket": "INC-665590", "estado": "Devuelto a NOC", "semaforo_sla": "Vencido", "horas_restantes": -2607.11, "horas_transcurridas": 2762.42, "horas_pr": 59.31, "horas_efectivas_sla": 2703.11, "fecha_solicitud_fmt": "2026-01-03 11:27", "fecha_limite_fmt": "2026-01-09 22:45", "sitio": "LO00077", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-676266", "estado": "En parada de reloj", "semaforo_sla": "Vencido", "horas_restantes": -1286.64, "horas_transcurridas": 2452.23, "horas_pr": 1069.59, "horas_efectivas_sla": 1382.64, "fecha_solicitud_fmt": "2026-01-16 09:38", "fecha_limite_fmt": "2026-03-05 23:13", "sitio": "AM00001", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "AMAZONAS", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-667931", "estado": "En parada de reloj", "semaforo_sla": "Vencido", "horas_restantes": -1120.79, "horas_transcurridas": 2667.6, "horas_pr": 1450.81, "horas_efectivas_sla": 1216.79, "fecha_solicitud_fmt": "2026-01-07 10:16", "fecha_limite_fmt": "2026-03-12 21:04", "sitio": "LO00120", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-722239", "estado": "En parada de reloj", "semaforo_sla": "Vencido", "horas_restantes": -704.32, "horas_transcurridas": 1346.38, "horas_pr": 546.06, "horas_efectivas_sla": 800.32, "fecha_solicitud_fmt": "2026-03-03 11:29", "fecha_limite_fmt": "2026-03-30 05:32", "sitio": "LO00155", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-727506", "estado": "En parada de reloj", "semaforo_sla": "Vencido", "horas_restantes": -680.09, "horas_transcurridas": 1322.73, "horas_pr": 546.64, "horas_efectivas_sla": 776.09, "fecha_solicitud_fmt": "2026-03-04 11:08", "fecha_limite_fmt": "2026-03-31 05:46", "sitio": "LO00198", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-659247", "estado": "Devuelto a NOC", "semaforo_sla": "Vencido", "horas_restantes": -656.12, "horas_transcurridas": 666.12, "horas_pr": 0.0, "horas_efectivas_sla": 666.12, "fecha_solicitud_fmt": "2026-03-31 19:45", "fecha_limite_fmt": "2026-04-01 05:45", "sitio": "PI00246", "cluster": "CLUSTER 3", "sla_horas": 10, "departamento": "PIURA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Urgente", "asignado_tecnico": "True"}, {"ticket": "INC-694576", "estado": "En parada de reloj", "semaforo_sla": "Vencido", "horas_restantes": -411.1, "horas_transcurridas": 1942.88, "horas_pr": 1435.78, "horas_efectivas_sla": 507.1, "fecha_solicitud_fmt": "2026-02-06 14:59", "fecha_limite_fmt": "2026-04-11 10:45", "sitio": "LO00099", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-290179", "estado": "En parada de reloj", "semaforo_sla": "Vencido", "horas_restantes": -326.06, "horas_transcurridas": 11065.55, "horas_pr": 10643.49, "horas_efectivas_sla": 422.06, "fecha_solicitud_fmt": "2025-01-22 12:19", "fecha_limite_fmt": "2026-04-14 23:48", "sitio": "AM00002", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "AMAZONAS", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-700054", "estado": "En parada de reloj", "semaforo_sla": "Vencido", "horas_restantes": -306.38, "horas_transcurridas": 1853.33, "horas_pr": 1450.95, "horas_efectivas_sla": 402.38, "fecha_solicitud_fmt": "2026-02-10 08:32", "fecha_limite_fmt": "2026-04-15 19:29", "sitio": "LO00186", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-677172", "estado": "En parada de reloj", "semaforo_sla": "Vencido", "horas_restantes": -277.26, "horas_transcurridas": 2235.35, "horas_pr": 1862.09, "horas_efectivas_sla": 373.26, "fecha_solicitud_fmt": "2026-01-25 10:31", "fecha_limite_fmt": "2026-04-17 00:36", "sitio": "LO00169", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-750339", "estado": "Devuelto a NOC", "semaforo_sla": "Vencido", "horas_restantes": -249.57, "horas_transcurridas": 673.05, "horas_pr": 399.48, "horas_efectivas_sla": 273.57, "fecha_solicitud_fmt": "2026-03-31 12:49", "fecha_limite_fmt": "2026-04-18 04:17", "sitio": "CA00168", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-663235", "estado": "En parada de reloj", "semaforo_sla": "Vencido", "horas_restantes": -207.75, "horas_transcurridas": 479.77, "horas_pr": 176.02, "horas_efectivas_sla": 303.75, "fecha_solicitud_fmt": "2026-04-08 14:06", "fecha_limite_fmt": "2026-04-19 22:07", "sitio": "LO00079", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-630516", "estado": "En parada de reloj", "semaforo_sla": "Vencido", "horas_restantes": -171.53, "horas_transcurridas": 3602.12, "horas_pr": 3334.59, "horas_efectivas_sla": 267.53, "fecha_solicitud_fmt": "2025-11-29 11:45", "fecha_limite_fmt": "2026-04-21 10:20", "sitio": "LO00339", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-707848", "estado": "En parada de reloj", "semaforo_sla": "Vencido", "horas_restantes": -102.24, "horas_transcurridas": 1777.75, "horas_pr": 1579.51, "horas_efectivas_sla": 198.24, "fecha_solicitud_fmt": "2026-02-13 12:07", "fecha_limite_fmt": "2026-04-24 07:37", "sitio": "HN00030", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "HUANUCO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-636229", "estado": "En parada de reloj", "semaforo_sla": "Vencido", "horas_restantes": -88.62, "horas_transcurridas": 3509.3, "horas_pr": 3324.68, "horas_efectivas_sla": 184.62, "fecha_solicitud_fmt": "2025-12-03 08:34", "fecha_limite_fmt": "2026-04-24 21:14", "sitio": "CA00332", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-782339", "estado": "En parada de reloj", "semaforo_sla": "Vencido", "horas_restantes": -75.08, "horas_transcurridas": 133.27, "horas_pr": 34.19, "horas_efectivas_sla": 99.08, "fecha_solicitud_fmt": "2026-04-23 00:36", "fecha_limite_fmt": "2026-04-25 10:47", "sitio": "SM00605", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "SAN MARTIN", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-513105", "estado": "En parada de reloj", "semaforo_sla": "Vencido", "horas_restantes": -72.83, "horas_transcurridas": 5700.9, "horas_pr": 5532.07, "horas_efectivas_sla": 168.83, "fecha_solicitud_fmt": "2025-09-03 00:58", "fecha_limite_fmt": "2026-04-25 13:02", "sitio": "LO00184", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-430521", "estado": "En parada de reloj", "semaforo_sla": "Vencido", "horas_restantes": -57.42, "horas_transcurridas": 7322.88, "horas_pr": 7217.46, "horas_efectivas_sla": 105.42, "fecha_solicitud_fmt": "2025-06-27 10:59", "fecha_limite_fmt": "2026-04-26 04:26", "sitio": "HN00064", "cluster": "CLUSTER 6", "sla_horas": 48, "departamento": "HUANUCO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-422932", "estado": "En parada de reloj", "semaforo_sla": "Vencido", "horas_restantes": -48.88, "horas_transcurridas": 5988.13, "horas_pr": 5843.25, "horas_efectivas_sla": 144.88, "fecha_solicitud_fmt": "2025-08-22 01:44", "fecha_limite_fmt": "2026-04-26 12:59", "sitio": "AN00056", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "ANCASH", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-762067", "estado": "Devuelto a NOC", "semaforo_sla": "Vencido", "horas_restantes": -48.7, "horas_transcurridas": 160.22, "horas_pr": 15.52, "horas_efectivas_sla": 144.7, "fecha_solicitud_fmt": "2026-04-21 21:39", "fecha_limite_fmt": "2026-04-26 13:10", "sitio": "LO00084", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-659273", "estado": "En parada de reloj", "semaforo_sla": "Vencido", "horas_restantes": -29.33, "horas_transcurridas": 2991.35, "horas_pr": 2938.02, "horas_efectivas_sla": 53.33, "fecha_solicitud_fmt": "2025-12-24 22:31", "fecha_limite_fmt": "2026-04-27 08:32", "sitio": "PI00220", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "PIURA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-665595", "estado": "En parada de reloj", "semaforo_sla": "Vencido", "horas_restantes": -25.14, "horas_transcurridas": 2752.12, "horas_pr": 2678.98, "horas_efectivas_sla": 73.14, "fecha_solicitud_fmt": "2026-01-03 21:45", "fecha_limite_fmt": "2026-04-27 12:43", "sitio": "UC00074", "cluster": "CLUSTER 6", "sla_horas": 48, "departamento": "UCAYALI", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-717646", "estado": "En parada de reloj", "semaforo_sla": "Vencido", "horas_restantes": -20.77, "horas_transcurridas": 1439.18, "horas_pr": 1370.41, "horas_efectivas_sla": 68.77, "fecha_solicitud_fmt": "2026-02-27 14:41", "fecha_limite_fmt": "2026-04-27 17:05", "sitio": "HN00289", "cluster": "CLUSTER 6", "sla_horas": 48, "departamento": "HUANUCO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-688487", "estado": "En parada de reloj", "semaforo_sla": "Vencido", "horas_restantes": -11.46, "horas_transcurridas": 2232.47, "horas_pr": 2125.01, "horas_efectivas_sla": 107.46, "fecha_solicitud_fmt": "2026-01-25 13:24", "fecha_limite_fmt": "2026-04-28 02:24", "sitio": "AN00089", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "ANCASH", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-689185", "estado": "En parada de reloj", "semaforo_sla": "Vencido", "horas_restantes": -11.4, "horas_transcurridas": 2189.85, "horas_pr": 2172.45, "horas_efectivas_sla": 17.4, "fecha_solicitud_fmt": "2026-01-27 08:01", "fecha_limite_fmt": "2026-04-28 02:28", "sitio": "CA00302", "cluster": "CLUSTER 1", "sla_horas": 6, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Urgente", "asignado_tecnico": "True"}, {"ticket": "INC-701711", "estado": "En parada de reloj", "semaforo_sla": "Vencido", "horas_restantes": -9.68, "horas_transcurridas": 1875.62, "horas_pr": 1841.94, "horas_efectivas_sla": 33.68, "fecha_solicitud_fmt": "2026-02-09 10:15", "fecha_limite_fmt": "2026-04-28 04:11", "sitio": "AM00142", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "AMAZONAS", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-433157", "estado": "En parada de reloj", "semaforo_sla": "Vencido", "horas_restantes": -7.94, "horas_transcurridas": 7247.77, "horas_pr": 7143.83, "horas_efectivas_sla": 103.94, "fecha_solicitud_fmt": "2025-06-30 14:06", "fecha_limite_fmt": "2026-04-28 05:55", "sitio": "LL00225", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LA LIBERTAD", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-731737", "estado": "En parada de reloj", "semaforo_sla": "Vencido", "horas_restantes": -0.61, "horas_transcurridas": 1197.27, "horas_pr": 1186.66, "horas_efectivas_sla": 10.61, "fecha_solicitud_fmt": "2026-03-09 16:36", "fecha_limite_fmt": "2026-04-28 13:15", "sitio": "PI00700", "cluster": "CLUSTER 3", "sla_horas": 10, "departamento": "PIURA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Urgente", "asignado_tecnico": "True"}, {"ticket": "INC-759011", "estado": "En parada de reloj", "semaforo_sla": "Critico <= 4h", "horas_restantes": 0.11, "horas_transcurridas": 662.95, "horas_pr": 639.06, "horas_efectivas_sla": 23.89, "fecha_solicitud_fmt": "2026-03-31 22:55", "fecha_limite_fmt": "2026-04-28 13:58", "sitio": "CA00313", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-761359", "estado": "En parada de reloj", "semaforo_sla": "Critico <= 4h", "horas_restantes": 0.81, "horas_transcurridas": 539.65, "horas_pr": 516.46, "horas_efectivas_sla": 23.19, "fecha_solicitud_fmt": "2026-04-06 02:13", "fecha_limite_fmt": "2026-04-28 14:40", "sitio": "LO00060", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-694249", "estado": "En parada de reloj", "semaforo_sla": "Critico <= 4h", "horas_restantes": 2.8, "horas_transcurridas": 2055.35, "horas_pr": 2034.15, "horas_efectivas_sla": 21.2, "fecha_solicitud_fmt": "2026-02-01 22:31", "fecha_limite_fmt": "2026-04-28 16:40", "sitio": "CA00112", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-788220", "estado": "En parada de reloj", "semaforo_sla": "Alerta <= 8h", "horas_restantes": 5.18, "horas_transcurridas": 6.82, "horas_pr": 0.0, "horas_efectivas_sla": 6.82, "fecha_solicitud_fmt": "2026-04-28 07:03", "fecha_limite_fmt": "2026-04-28 19:03", "sitio": "CA00285", "cluster": "CLUSTER 4", "sla_horas": 12, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Urgente", "asignado_tecnico": "True"}, {"ticket": "INC-782340", "estado": "En parada de reloj", "semaforo_sla": "Alerta <= 8h", "horas_restantes": 5.99, "horas_transcurridas": 29.9, "horas_pr": 11.89, "horas_efectivas_sla": 18.01, "fecha_solicitud_fmt": "2026-04-27 07:58", "fecha_limite_fmt": "2026-04-28 19:51", "sitio": "SM00605", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "SAN MARTIN", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-782341", "estado": "En parada de reloj", "semaforo_sla": "Alerta <= 8h", "horas_restantes": 6.04, "horas_transcurridas": 29.88, "horas_pr": 11.92, "horas_efectivas_sla": 17.96, "fecha_solicitud_fmt": "2026-04-27 07:59", "fecha_limite_fmt": "2026-04-28 19:54", "sitio": "SM00605", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "SAN MARTIN", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-783075", "estado": "En parada de reloj", "semaforo_sla": "Seguimiento <= 24h", "horas_restantes": 8.34, "horas_transcurridas": 28.28, "horas_pr": 12.62, "horas_efectivas_sla": 15.66, "fecha_solicitud_fmt": "2026-04-27 09:35", "fecha_limite_fmt": "2026-04-28 22:12", "sitio": "SM00681", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "SAN MARTIN", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-782749", "estado": "En parada de reloj", "semaforo_sla": "Seguimiento <= 24h", "horas_restantes": 10.19, "horas_transcurridas": 25.17, "horas_pr": 11.36, "horas_efectivas_sla": 13.81, "fecha_solicitud_fmt": "2026-04-27 12:42", "fecha_limite_fmt": "2026-04-29 00:03", "sitio": "CA00669", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-759388", "estado": "En parada de reloj", "semaforo_sla": "Seguimiento <= 24h", "horas_restantes": 10.5, "horas_transcurridas": 601.07, "horas_pr": 587.57, "horas_efectivas_sla": 13.5, "fecha_solicitud_fmt": "2026-04-03 12:48", "fecha_limite_fmt": "2026-04-29 00:22", "sitio": "CA00358", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-378342", "estado": "En parada de reloj", "semaforo_sla": "Seguimiento <= 24h", "horas_restantes": 10.86, "horas_transcurridas": 8625.08, "horas_pr": 8587.94, "horas_efectivas_sla": 37.14, "fecha_solicitud_fmt": "2025-05-04 04:47", "fecha_limite_fmt": "2026-04-29 00:43", "sitio": "HN00125", "cluster": "CLUSTER 6", "sla_horas": 48, "departamento": "HUANUCO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-742438", "estado": "En parada de reloj", "semaforo_sla": "Seguimiento <= 24h", "horas_restantes": 10.87, "horas_transcurridas": 862.83, "horas_pr": 777.7, "horas_efectivas_sla": 85.13, "fecha_solicitud_fmt": "2026-03-23 15:02", "fecha_limite_fmt": "2026-04-29 00:44", "sitio": "LO00216", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-767149", "estado": "En parada de reloj", "semaforo_sla": "Seguimiento <= 24h", "horas_restantes": 11.6, "horas_transcurridas": 384.3, "horas_pr": 371.9, "horas_efectivas_sla": 12.4, "fecha_solicitud_fmt": "2026-04-12 13:34", "fecha_limite_fmt": "2026-04-29 01:28", "sitio": "AM00246", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "AMAZONAS", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-761152", "estado": "En parada de reloj", "semaforo_sla": "Seguimiento <= 24h", "horas_restantes": 11.64, "horas_transcurridas": 529.15, "horas_pr": 516.79, "horas_efectivas_sla": 12.36, "fecha_solicitud_fmt": "2026-04-06 12:43", "fecha_limite_fmt": "2026-04-29 01:30", "sitio": "HN00036", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "HUANUCO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-784982", "estado": "En parada de reloj", "semaforo_sla": "Seguimiento <= 24h", "horas_restantes": 11.83, "horas_transcurridas": 26.02, "horas_pr": 13.85, "horas_efectivas_sla": 12.17, "fecha_solicitud_fmt": "2026-04-27 11:51", "fecha_limite_fmt": "2026-04-29 01:42", "sitio": "PI00228", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "PIURA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-758605", "estado": "En parada de reloj", "semaforo_sla": "Seguimiento <= 24h", "horas_restantes": 12.8, "horas_transcurridas": 603.4, "horas_pr": 568.2, "horas_efectivas_sla": 35.2, "fecha_solicitud_fmt": "2026-04-03 10:28", "fecha_limite_fmt": "2026-04-29 02:40", "sitio": "HN00171", "cluster": "CLUSTER 6", "sla_horas": 48, "departamento": "HUANUCO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-778893", "estado": "En parada de reloj", "semaforo_sla": "Seguimiento <= 24h", "horas_restantes": 16.08, "horas_transcurridas": 93.68, "horas_pr": 85.76, "horas_efectivas_sla": 7.92, "fecha_solicitud_fmt": "2026-04-24 16:11", "fecha_limite_fmt": "2026-04-29 05:56", "sitio": "AM00090", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "AMAZONAS", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-788022", "estado": "Asignado a técnico", "semaforo_sla": "Seguimiento <= 24h", "horas_restantes": 18.47, "horas_transcurridas": 5.53, "horas_pr": 0.0, "horas_efectivas_sla": 5.53, "fecha_solicitud_fmt": "2026-04-28 08:20", "fecha_limite_fmt": "2026-04-29 08:20", "sitio": "CA00335", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-788218", "estado": "Asignado a técnico", "semaforo_sla": "Seguimiento <= 24h", "horas_restantes": 19.33, "horas_transcurridas": 4.67, "horas_pr": 0.0, "horas_efectivas_sla": 4.67, "fecha_solicitud_fmt": "2026-04-28 09:12", "fecha_limite_fmt": "2026-04-29 09:12", "sitio": "CA00668", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-764400", "estado": "En parada de reloj", "semaforo_sla": "Seguimiento <= 24h", "horas_restantes": 20.33, "horas_transcurridas": 160.13, "horas_pr": 84.46, "horas_efectivas_sla": 75.67, "fecha_solicitud_fmt": "2026-04-21 21:44", "fecha_limite_fmt": "2026-04-29 10:11", "sitio": "HN00041", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "HUANUCO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-785120", "estado": "Devuelto a NOC", "semaforo_sla": "Seguimiento <= 24h", "horas_restantes": 20.42, "horas_transcurridas": 3.58, "horas_pr": 0.0, "horas_efectivas_sla": 3.58, "fecha_solicitud_fmt": "2026-04-28 10:17", "fecha_limite_fmt": "2026-04-29 10:17", "sitio": "IC00390", "cluster": "CLUSTER 5", "sla_horas": 24, "departamento": "ICA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Alto", "asignado_tecnico": "True"}, {"ticket": "INC-733485", "estado": "En parada de reloj", "semaforo_sla": "Seguimiento <= 24h", "horas_restantes": 20.68, "horas_transcurridas": 1200.73, "horas_pr": 1173.41, "horas_efectivas_sla": 27.32, "fecha_solicitud_fmt": "2026-03-09 13:08", "fecha_limite_fmt": "2026-04-29 10:32", "sitio": "CA00387", "cluster": "CLUSTER 6", "sla_horas": 48, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-554626", "estado": "En parada de reloj", "semaforo_sla": "Seguimiento <= 24h", "horas_restantes": 21.0, "horas_transcurridas": 4916.58, "horas_pr": 4841.58, "horas_efectivas_sla": 75.0, "fecha_solicitud_fmt": "2025-10-05 17:17", "fecha_limite_fmt": "2026-04-29 10:51", "sitio": "AN00067", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "ANCASH", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-449479", "estado": "En parada de reloj", "semaforo_sla": "Seguimiento <= 24h", "horas_restantes": 21.57, "horas_transcurridas": 6984.78, "horas_pr": 6958.35, "horas_efectivas_sla": 26.43, "fecha_solicitud_fmt": "2025-07-11 13:05", "fecha_limite_fmt": "2026-04-29 11:26", "sitio": "CA00165", "cluster": "CLUSTER 6", "sla_horas": 48, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 30 minutos", "motivo": "Ticket Automático", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-497547", "estado": "En parada de reloj", "semaforo_sla": "En tiempo", "horas_restantes": 25.99, "horas_transcurridas": 1149.58, "horas_pr": 1079.57, "horas_efectivas_sla": 70.01, "fecha_solicitud_fmt": "2026-03-11 16:17", "fecha_limite_fmt": "2026-04-29 15:51", "sitio": "AN00081", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "ANCASH", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-763445", "estado": "En parada de reloj", "semaforo_sla": "En tiempo", "horas_restantes": 30.57, "horas_transcurridas": 508.28, "horas_pr": 490.85, "horas_efectivas_sla": 17.43, "fecha_solicitud_fmt": "2026-04-07 09:35", "fecha_limite_fmt": "2026-04-29 20:26", "sitio": "SM00184", "cluster": "CLUSTER 6", "sla_horas": 48, "departamento": "SAN MARTIN", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-777058", "estado": "En parada de reloj", "semaforo_sla": "En tiempo", "horas_restantes": 34.04, "horas_transcurridas": 97.78, "horas_pr": 35.82, "horas_efectivas_sla": 61.96, "fecha_solicitud_fmt": "2026-04-24 12:05", "fecha_limite_fmt": "2026-04-29 23:54", "sitio": "AM00118", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "AMAZONAS", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-362605", "estado": "En parada de reloj", "semaforo_sla": "En tiempo", "horas_restantes": 34.36, "horas_transcurridas": 9120.57, "horas_pr": 9106.93, "horas_efectivas_sla": 13.64, "fecha_solicitud_fmt": "2025-04-13 13:18", "fecha_limite_fmt": "2026-04-30 00:13", "sitio": "AN00059", "cluster": "CLUSTER 6", "sla_horas": 48, "departamento": "ANCASH", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-718308", "estado": "En parada de reloj", "semaforo_sla": "En tiempo", "horas_restantes": 35.41, "horas_transcurridas": 1493.23, "horas_pr": 1432.64, "horas_efectivas_sla": 60.59, "fecha_solicitud_fmt": "2026-02-25 08:38", "fecha_limite_fmt": "2026-04-30 01:16", "sitio": "LO00185", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-777472", "estado": "En revisión", "semaforo_sla": "En tiempo", "horas_restantes": 35.98, "horas_transcurridas": 96.47, "horas_pr": 36.45, "horas_efectivas_sla": 60.02, "fecha_solicitud_fmt": "2026-04-24 13:24", "fecha_limite_fmt": "2026-04-30 01:51", "sitio": "AN00147", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "ANCASH", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-499407", "estado": "En parada de reloj", "semaforo_sla": "En tiempo", "horas_restantes": 36.01, "horas_transcurridas": 5910.73, "horas_pr": 5850.74, "horas_efectivas_sla": 59.99, "fecha_solicitud_fmt": "2025-08-25 07:08", "fecha_limite_fmt": "2026-04-30 01:52", "sitio": "LO00126", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-713818", "estado": "En parada de reloj", "semaforo_sla": "En tiempo", "horas_restantes": 36.18, "horas_transcurridas": 1510.83, "horas_pr": 1451.01, "horas_efectivas_sla": 59.82, "fecha_solicitud_fmt": "2026-02-24 15:02", "fecha_limite_fmt": "2026-04-30 02:02", "sitio": "LO00181", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-776779", "estado": "En parada de reloj", "semaforo_sla": "En tiempo", "horas_restantes": 40.88, "horas_transcurridas": 192.97, "horas_pr": 185.85, "horas_efectivas_sla": 7.12, "fecha_solicitud_fmt": "2026-04-20 12:54", "fecha_limite_fmt": "2026-04-30 06:45", "sitio": "SM00401", "cluster": "CLUSTER 6", "sla_horas": 48, "departamento": "SAN MARTIN", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-785797", "estado": "Asignado a técnico", "semaforo_sla": "En tiempo", "horas_restantes": 43.63, "horas_transcurridas": 4.37, "horas_pr": 0.0, "horas_efectivas_sla": 4.37, "fecha_solicitud_fmt": "2026-04-28 09:30", "fecha_limite_fmt": "2026-04-30 09:30", "sitio": "HN00046", "cluster": "CLUSTER 6", "sla_horas": 48, "departamento": "HUANUCO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-738147", "estado": "En parada de reloj", "semaforo_sla": "En tiempo", "horas_restantes": 47.3, "horas_transcurridas": 1149.43, "horas_pr": 1100.73, "horas_efectivas_sla": 48.7, "fecha_solicitud_fmt": "2026-03-11 16:26", "fecha_limite_fmt": "2026-04-30 13:09", "sitio": "HN00250", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "HUANUCO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-677624", "estado": "En parada de reloj", "semaforo_sla": "En tiempo", "horas_restantes": 51.33, "horas_transcurridas": 2379.92, "horas_pr": 2335.25, "horas_efectivas_sla": 44.67, "fecha_solicitud_fmt": "2026-01-19 09:57", "fecha_limite_fmt": "2026-04-30 17:12", "sitio": "LA00577", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LAMBAYEQUE", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-746128", "estado": "En parada de reloj", "semaforo_sla": "En tiempo", "horas_restantes": 55.46, "horas_transcurridas": 867.03, "horas_pr": 826.49, "horas_efectivas_sla": 40.54, "fecha_solicitud_fmt": "2026-03-23 10:50", "fecha_limite_fmt": "2026-04-30 21:19", "sitio": "LL00214", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LA LIBERTAD", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-759191", "estado": "En parada de reloj", "semaforo_sla": "En tiempo", "horas_restantes": 56.98, "horas_transcurridas": 458.2, "horas_pr": 419.18, "horas_efectivas_sla": 39.02, "fecha_solicitud_fmt": "2026-04-09 11:40", "fecha_limite_fmt": "2026-04-30 22:50", "sitio": "CA00303", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-706937", "estado": "En parada de reloj", "semaforo_sla": "En tiempo", "horas_restantes": 60.81, "horas_transcurridas": 1803.23, "horas_pr": 1768.04, "horas_efectivas_sla": 35.19, "fecha_solicitud_fmt": "2026-02-12 10:38", "fecha_limite_fmt": "2026-05-01 02:40", "sitio": "CA00508", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-705594", "estado": "En parada de reloj", "semaforo_sla": "En tiempo", "horas_restantes": 63.32, "horas_transcurridas": 1704.58, "horas_pr": 1671.9, "horas_efectivas_sla": 32.68, "fecha_solicitud_fmt": "2026-02-16 13:17", "fecha_limite_fmt": "2026-05-01 05:11", "sitio": "AN00054", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "ANCASH", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-738717", "estado": "En parada de reloj", "semaforo_sla": "En tiempo", "horas_restantes": 64.73, "horas_transcurridas": 1131.73, "horas_pr": 1100.46, "horas_efectivas_sla": 31.27, "fecha_solicitud_fmt": "2026-03-12 10:08", "fecha_limite_fmt": "2026-05-01 06:35", "sitio": "LL00182", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LA LIBERTAD", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-676540", "estado": "En parada de reloj", "semaforo_sla": "En tiempo", "horas_restantes": 66.71, "horas_transcurridas": 2499.35, "horas_pr": 2470.06, "horas_efectivas_sla": 29.29, "fecha_solicitud_fmt": "2026-01-14 10:31", "fecha_limite_fmt": "2026-05-01 08:34", "sitio": "CA00123", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-780011", "estado": "Asignado a técnico", "semaforo_sla": "En tiempo", "horas_restantes": 68.22, "horas_transcurridas": 27.78, "horas_pr": 0.0, "horas_efectivas_sla": 27.78, "fecha_solicitud_fmt": "2026-04-27 10:05", "fecha_limite_fmt": "2026-05-01 10:05", "sitio": "CA00122", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-779916", "estado": "Asignado a técnico", "semaforo_sla": "En tiempo", "horas_restantes": 68.33, "horas_transcurridas": 27.67, "horas_pr": 0.0, "horas_efectivas_sla": 27.67, "fecha_solicitud_fmt": "2026-04-27 10:12", "fecha_limite_fmt": "2026-05-01 10:12", "sitio": "SM00198", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "SAN MARTIN", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-779831", "estado": "Asignado a técnico", "semaforo_sla": "En tiempo", "horas_restantes": 70.02, "horas_transcurridas": 25.98, "horas_pr": 0.0, "horas_efectivas_sla": 25.98, "fecha_solicitud_fmt": "2026-04-27 11:53", "fecha_limite_fmt": "2026-05-01 11:53", "sitio": "LO00365", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Medio", "asignado_tecnico": "True"}, {"ticket": "INC-730234", "estado": "En parada de reloj", "semaforo_sla": "En tiempo", "horas_restantes": 70.61, "horas_transcurridas": 39.2, "horas_pr": 13.81, "horas_efectivas_sla": 25.39, "fecha_solicitud_fmt": "2026-04-26 22:40", "fecha_limite_fmt": "2026-05-01 12:28", "sitio": "LO00128", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-759201", "estado": "En parada de reloj", "semaforo_sla": "En tiempo", "horas_restantes": 70.87, "horas_transcurridas": 160.3, "horas_pr": 135.17, "horas_efectivas_sla": 25.13, "fecha_solicitud_fmt": "2026-04-21 21:34", "fecha_limite_fmt": "2026-05-01 12:44", "sitio": "SM00147", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "SAN MARTIN", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-719619", "estado": "En parada de reloj", "semaforo_sla": "En tiempo", "horas_restantes": 73.09, "horas_transcurridas": 1455.1, "horas_pr": 1432.19, "horas_efectivas_sla": 22.91, "fecha_solicitud_fmt": "2026-02-26 22:46", "fecha_limite_fmt": "2026-05-01 14:57", "sitio": "LO00127", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-709693", "estado": "En parada de reloj", "semaforo_sla": "En tiempo", "horas_restantes": 81.3, "horas_transcurridas": 1705.95, "horas_pr": 1691.25, "horas_efectivas_sla": 14.7, "fecha_solicitud_fmt": "2026-02-16 11:55", "fecha_limite_fmt": "2026-05-01 23:10", "sitio": "LL00269", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LA LIBERTAD", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-788146", "estado": "En parada de reloj", "semaforo_sla": "En tiempo", "horas_restantes": 83.57, "horas_transcurridas": 12.43, "horas_pr": 0.0, "horas_efectivas_sla": 12.43, "fecha_solicitud_fmt": "2026-04-28 01:26", "fecha_limite_fmt": "2026-05-02 01:26", "sitio": "nan", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia Grupal", "motivo": "Ticket Automático", "prioridad": "Urgente", "asignado_tecnico": "True"}, {"ticket": "INC-677213", "estado": "En parada de reloj", "semaforo_sla": "En tiempo", "horas_restantes": 86.26, "horas_transcurridas": 2356.28, "horas_pr": 2346.54, "horas_efectivas_sla": 9.74, "fecha_solicitud_fmt": "2026-01-20 09:35", "fecha_limite_fmt": "2026-05-02 04:07", "sitio": "LO00336", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-663238", "estado": "En parada de reloj", "semaforo_sla": "En tiempo", "horas_restantes": 86.47, "horas_transcurridas": 94.43, "horas_pr": 84.9, "horas_efectivas_sla": 9.53, "fecha_solicitud_fmt": "2026-04-24 15:26", "fecha_limite_fmt": "2026-05-02 04:20", "sitio": "LO00079", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-694578", "estado": "En parada de reloj", "semaforo_sla": "En tiempo", "horas_restantes": 87.34, "horas_transcurridas": 1443.3, "horas_pr": 1434.64, "horas_efectivas_sla": 8.66, "fecha_solicitud_fmt": "2026-02-27 10:34", "fecha_limite_fmt": "2026-05-02 05:12", "sitio": "LO00099", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "LORETO", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}, {"ticket": "INC-775131", "estado": "En parada de reloj", "semaforo_sla": "En tiempo", "horas_restantes": 89.1, "horas_transcurridas": 123.32, "horas_pr": 116.42, "horas_efectivas_sla": 6.9, "fecha_solicitud_fmt": "2026-04-23 10:33", "fecha_limite_fmt": "2026-05-02 06:58", "sitio": "CA00279", "cluster": "CLUSTER 7", "sla_horas": 96, "departamento": "CAJAMARCA", "empresa_contratista": "INDRA PERU S.A.", "tipo_falla": "Falla Persistencia 24 horas", "motivo": "Ticket Automático", "prioridad": "Bajo", "asignado_tecnico": "True"}];
+    const SUMMARY = {"corte": "2026-04-28 13:53", "total": 81, "vencidos": 28, "criticos_4h": 3, "alerta_8h": 3, "seguimiento_24h": 17, "en_tiempo": 30, "top_upcoming": [{"ticket": "INC-759011", "sitio": "CA00313", "cluster": "CLUSTER 5", "departamento": "CAJAMARCA", "estado": "En parada de reloj", "prioridad": "Medio", "horas_restantes": 0.11}, {"ticket": "INC-761359", "sitio": "LO00060", "cluster": "CLUSTER 5", "departamento": "LORETO", "estado": "En parada de reloj", "prioridad": "Alto", "horas_restantes": 0.81}, {"ticket": "INC-694249", "sitio": "CA00112", "cluster": "CLUSTER 5", "departamento": "CAJAMARCA", "estado": "En parada de reloj", "prioridad": "Alto", "horas_restantes": 2.8}, {"ticket": "INC-788220", "sitio": "CA00285", "cluster": "CLUSTER 4", "departamento": "CAJAMARCA", "estado": "En parada de reloj", "prioridad": "Urgente", "horas_restantes": 5.18}, {"ticket": "INC-782340", "sitio": "SM00605", "cluster": "CLUSTER 5", "departamento": "SAN MARTIN", "estado": "En parada de reloj", "prioridad": "Alto", "horas_restantes": 5.99}], "top_clusters": [{"cluster": "CLUSTER 7", "tickets": 47, "vencidos": 18, "criticos": 0, "alertas": 0, "min_horas_restantes": -2607.11}, {"cluster": "CLUSTER 5", "tickets": 19, "vencidos": 4, "criticos": 3, "alertas": 2, "min_horas_restantes": -249.57}, {"cluster": "CLUSTER 6", "tickets": 11, "vencidos": 3, "criticos": 0, "alertas": 0, "min_horas_restantes": -57.42}, {"cluster": "CLUSTER 3", "tickets": 2, "vencidos": 2, "criticos": 0, "alertas": 0, "min_horas_restantes": -656.12}, {"cluster": "CLUSTER 1", "tickets": 1, "vencidos": 1, "criticos": 0, "alertas": 0, "min_horas_restantes": -11.4}], "semaforo_counts": {"Vencido": 28, "Critico <= 4h": 3, "Alerta <= 8h": 3, "Seguimiento <= 24h": 17, "En tiempo": 30}, "cluster_mas_presionado": "CLUSTER 7"};
+    const COLORS = {
+      "Vencido": "#b13a2e",
+      "Critico <= 4h": "#b87417",
+      "Alerta <= 8h": "#d4a017",
+      "Seguimiento <= 24h": "#5f8f3f",
+      "En tiempo": "#2b6b4e"
+    };
+
+    const searchEl = document.getElementById("search");
+    const semaforoEl = document.getElementById("semaforo");
+    const clusterEl = document.getElementById("cluster");
+    const departamentoEl = document.getElementById("departamento");
+    const estadoEl = document.getElementById("estado");
+    const rowsEl = document.getElementById("rows");
+
+    function uniqueValues(key) {
+      return ["Todos"].concat([...new Set(DATA.map(item => item[key] || "").filter(Boolean))].sort());
+    }
+
+    function fillSelect(select, values) {
+      select.innerHTML = values.map(value => `<option value="${value}">${value}</option>`).join("");
+    }
+
+    function pillClass(status) {
+      if (status === "Vencido") return "vencido";
+      if (status === "Critico <= 4h") return "critico";
+      if (status === "Alerta <= 8h" || status === "Seguimiento <= 24h") return "alerta";
+      return "tiempo";
+    }
+
+    function num(value) {
+      if (value === "" || value == null || Number.isNaN(Number(value))) return "";
+      return Number(value).toFixed(2);
+    }
+
+    function renderKpis(rows) {
+      const counts = {
+        total: rows.length,
+        vencidos: rows.filter(r => r["semaforo_sla"] === "Vencido").length,
+        criticos4h: rows.filter(r => r["semaforo_sla"] === "Critico <= 4h").length,
+        alerta8h: rows.filter(r => r["semaforo_sla"] === "Alerta <= 8h").length,
+        seguimiento24h: rows.filter(r => r["semaforo_sla"] === "Seguimiento <= 24h").length,
+        enTiempo: rows.filter(r => r["semaforo_sla"] === "En tiempo").length,
+      };
+      document.getElementById("kpi-total").textContent = counts.total;
+      document.getElementById("kpi-vencidos").textContent = counts.vencidos;
+      document.getElementById("kpi-4h").textContent = counts.criticos4h;
+      document.getElementById("kpi-8h").textContent = counts.alerta8h;
+      document.getElementById("kpi-24h").textContent = counts.seguimiento24h;
+      document.getElementById("kpi-tiempo").textContent = counts.enTiempo;
+    }
+
+    function buildRows(rows) {
+      rowsEl.innerHTML = rows.map(row => `
+        <tr>
+          <td>${row.ticket}</td>
+          <td>${row.estado}</td>
+          <td><span class="pill ${pillClass(row["semaforo_sla"])}">${row["semaforo_sla"]}</span></td>
+          <td>${num(row["horas_restantes"])}</td>
+          <td>${num(row["horas_transcurridas"])}</td>
+          <td>${num(row["horas_pr"])}</td>
+          <td>${num(row["horas_efectivas_sla"])}</td>
+          <td>${row["fecha_solicitud_fmt"]}</td>
+          <td>${row["fecha_limite_fmt"]}</td>
+          <td>${row.sitio}</td>
+          <td>${row.cluster}</td>
+          <td>${num(row["sla_horas"])}</td>
+          <td>${row.departamento}</td>
+          <td>${row.empresa_contratista}</td>
+          <td>${row.tipo_falla}</td>
+          <td>${row.motivo}</td>
+          <td>${row.prioridad}</td>
+          <td>${row.asignado_tecnico}</td>
+        </tr>
+      `).join("");
+    }
+
+    function semaforoCounts(rows) {
+      return {
+        "Vencido": rows.filter(r => r["semaforo_sla"] === "Vencido").length,
+        "Critico <= 4h": rows.filter(r => r["semaforo_sla"] === "Critico <= 4h").length,
+        "Alerta <= 8h": rows.filter(r => r["semaforo_sla"] === "Alerta <= 8h").length,
+        "Seguimiento <= 24h": rows.filter(r => r["semaforo_sla"] === "Seguimiento <= 24h").length,
+        "En tiempo": rows.filter(r => r["semaforo_sla"] === "En tiempo").length,
+      };
+    }
+
+    function renderDonut(rows) {
+      const order = ["Vencido", "Critico <= 4h", "Alerta <= 8h", "Seguimiento <= 24h", "En tiempo"];
+      const counts = semaforoCounts(rows);
+      const total = rows.length || 1;
+      let cursor = 0;
+      const parts = order.map(key => {
+        const value = counts[key] || 0;
+        const size = (value / total) * 360;
+        const start = cursor;
+        const end = cursor + size;
+        cursor = end;
+        return `${COLORS[key]} ${start}deg ${end}deg`;
+      });
+      document.getElementById("donut").style.background = rows.length
+        ? `conic-gradient(${parts.join(", ")})`
+        : "#d8d1c4";
+      document.getElementById("donut-center").innerHTML = `<div><div class="donut-value">${rows.length}</div><span>tickets automáticos</span></div>`;
+      document.getElementById("legend").innerHTML = order.map(key => `
+        <div class="legend-item">
+          <div class="legend-left">
+            <span class="swatch" style="background:${COLORS[key]};"></span>
+            <span>${key}</span>
+          </div>
+          <strong>${counts[key] || 0}</strong>
+        </div>
+      `).join("");
+    }
+
+    function renderExecutiveMessages(rows) {
+      const counts = semaforoCounts(rows);
+      const upcoming = rows
+        .filter(row => Number(row.horas_restantes) >= 0)
+        .slice()
+        .sort((a, b) => Number(a.horas_restantes || 0) - Number(b.horas_restantes || 0))
+        [0];
+      const clusterSummary = rows.reduce((acc, row) => {
+        const key = row.cluster || "Sin cluster";
+        if (!acc[key]) acc[key] = { tickets: 0, vencidos: 0, criticos: 0, alertas: 0 };
+        acc[key].tickets += 1;
+        if (row.semaforo_sla === "Vencido") acc[key].vencidos += 1;
+        if (row.semaforo_sla === "Critico <= 4h") acc[key].criticos += 1;
+        if (row.semaforo_sla === "Alerta <= 8h") acc[key].alertas += 1;
+        return acc;
+      }, {});
+      const topCluster = Object.entries(clusterSummary)
+        .map(([cluster, data]) => ({ cluster, ...data }))
+        .sort((a, b) => b.vencidos - a.vencidos || b.criticos - a.criticos || b.alertas - a.alertas || b.tickets - a.tickets)
+        [0]?.cluster || "Sin datos";
+      const messages = [
+        {
+          title: "Presión actual",
+          body: `${counts["Vencido"] || 0} tickets ya vencidos y ${counts["Critico <= 4h"] || 0} tickets críticos con vencimiento en las próximas 4 horas.`
+        },
+        {
+          title: "Próximo a vencer",
+          body: upcoming
+            ? `El caso más próximo a vencer es ${upcoming.ticket} en ${upcoming.sitio}, con ${Number(upcoming.horas_restantes).toFixed(2)} horas restantes.`
+            : "No hay tickets próximos a vencer fuera de los ya vencidos."
+        },
+        {
+          title: "Foco principal",
+          body: `El cluster con mayor presión actual es ${topCluster}, considerando vencidos, críticos y alertas.`
+        }
+      ];
+      document.getElementById("executive-messages").innerHTML = messages.map(item => `
+        <div class="message">
+          <strong>${item.title}</strong>
+          <div>${item.body}</div>
+        </div>
+      `).join("");
+    }
+
+    function renderUpcoming(rows) {
+      const items = rows
+        .filter(row => Number(row.horas_restantes) >= 0)
+        .slice()
+        .sort((a, b) => Number(a.horas_restantes || 0) - Number(b.horas_restantes || 0))
+        .slice(0, 5);
+      const target = document.getElementById("top-upcoming");
+      if (!items.length) {
+        target.innerHTML = '<div class="rank-item">No hay tickets próximos a vencer fuera de los ya vencidos.</div>';
+        return;
+      }
+      target.innerHTML = items.map((item, index) => `
+        <div class="rank-item">
+          <div class="rank-head">
+            <strong>${index + 1}. ${item.ticket}</strong>
+            <span>${Number(item.horas_restantes).toFixed(2)} h</span>
+          </div>
+          <div class="rank-meta">${item.sitio} | ${item.cluster} | ${item.departamento}</div>
+          <div class="rank-meta">Estado: ${item.estado} | Prioridad: ${item.prioridad}</div>
+        </div>
+      `).join("");
+    }
+
+    function renderTopClusters(rows) {
+      const clusterSummary = rows.reduce((acc, row) => {
+        const key = row.cluster || "Sin cluster";
+        if (!acc[key]) acc[key] = { cluster: key, tickets: 0, vencidos: 0, criticos: 0, alertas: 0, min_horas_restantes: Number.POSITIVE_INFINITY };
+        acc[key].tickets += 1;
+        if (row.semaforo_sla === "Vencido") acc[key].vencidos += 1;
+        if (row.semaforo_sla === "Critico <= 4h") acc[key].criticos += 1;
+        if (row.semaforo_sla === "Alerta <= 8h") acc[key].alertas += 1;
+        const horas = Number(row.horas_restantes);
+        if (!Number.isNaN(horas)) acc[key].min_horas_restantes = Math.min(acc[key].min_horas_restantes, horas);
+        return acc;
+      }, {});
+      const items = Object.values(clusterSummary)
+        .map(item => ({
+          ...item,
+          min_horas_restantes: Number.isFinite(item.min_horas_restantes) ? item.min_horas_restantes : 0
+        }))
+        .sort((a, b) => b.vencidos - a.vencidos || b.criticos - a.criticos || b.alertas - a.alertas || b.tickets - a.tickets)
+        .slice(0, 5);
+      const target = document.getElementById("top-clusters");
+      if (!items.length) {
+        target.innerHTML = '<div class="rank-item">No hay datos de clusters para mostrar.</div>';
+        return;
+      }
+      target.innerHTML = items.map((item, index) => `
+        <div class="rank-item">
+          <div class="rank-head">
+            <strong>${index + 1}. ${item.cluster}</strong>
+            <span>${item.tickets} tickets</span>
+          </div>
+          <div class="rank-meta">Vencidos: ${item.vencidos} | Críticos: ${item.criticos} | Alertas: ${item.alertas}</div>
+          <div class="rank-meta">Menor holgura observada: ${Number(item.min_horas_restantes).toFixed(2)} h</div>
+        </div>
+      `).join("");
+    }
+
+    function applyFilters() {
+      const text = searchEl.value.trim().toLowerCase();
+      const semaforo = semaforoEl.value;
+      const cluster = clusterEl.value;
+      const departamento = departamentoEl.value;
+      const estado = estadoEl.value;
+
+      const rows = DATA.filter(row => {
+        const hayTexto = !text || Object.values(row).join(" ").toLowerCase().includes(text);
+        const matchSemaforo = semaforo === "Todos" || row["semaforo_sla"] === semaforo;
+        const matchCluster = cluster === "Todos" || row["cluster"] === cluster;
+        const matchDepartamento = departamento === "Todos" || row["departamento"] === departamento;
+        const matchEstado = estado === "Todos" || row["estado"] === estado;
+        return hayTexto && matchSemaforo && matchCluster && matchDepartamento && matchEstado;
+      });
+
+      renderKpis(rows);
+      renderDonut(rows);
+      renderExecutiveMessages(rows);
+      renderUpcoming(rows);
+      renderTopClusters(rows);
+      buildRows(rows);
+      document.getElementById("footer-note").textContent =
+        `Mostrando ${rows.length} de ${DATA.length} tickets automáticos no finalizados.`;
+    }
+
+    fillSelect(semaforoEl, uniqueValues("semaforo_sla"));
+    fillSelect(clusterEl, uniqueValues("cluster"));
+    fillSelect(departamentoEl, uniqueValues("departamento"));
+    fillSelect(estadoEl, uniqueValues("estado"));
+
+    document.getElementById("meta").textContent =
+      `Corte generado: ${SUMMARY.corte} | Fuente: seguimiento_sla_unificado.xlsx | Tickets automáticos no finalizados: ${SUMMARY.total}`;
+
+    [searchEl, semaforoEl, clusterEl, departamentoEl, estadoEl].forEach(el => {
+      el.addEventListener("input", applyFilters);
+      el.addEventListener("change", applyFilters);
+    });
+
+    renderKpis(DATA);
+    buildRows(DATA);
+    renderDonut(DATA);
+    renderExecutiveMessages(DATA);
+    renderUpcoming(DATA);
+    renderTopClusters(DATA);
+    document.getElementById("footer-note").textContent =
+      `Mostrando ${DATA.length} de ${DATA.length} tickets automáticos no finalizados.`;
+  </script>
+</body>
+</html>
