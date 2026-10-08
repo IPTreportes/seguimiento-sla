@@ -21,7 +21,7 @@
       min-height: 100vh;
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       color: var(--ink);
-      background: linear-gradient(180deg, #faf7ef 0%, var(--bg) 100%);
+      background: var(--bg);
     }
     main {
       width: min(1080px, calc(100% - 32px));
@@ -33,13 +33,13 @@
       color: var(--accent);
       font-size: 12px;
       font-weight: 800;
-      letter-spacing: 0.14em;
+      letter-spacing: 0;
       text-transform: uppercase;
       margin-bottom: 10px;
     }
     h1 {
       margin: 0;
-      font-size: clamp(32px, 5vw, 54px);
+      font-size: 40px;
       line-height: 1.02;
       letter-spacing: 0;
     }
@@ -56,25 +56,27 @@
     }
     a.card {
       display: block;
-      min-height: 220px;
-      padding: 24px;
+      min-height: 190px;
+      padding: 20px;
       color: inherit;
       text-decoration: none;
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 18px;
+      border-radius: 8px;
       box-shadow: var(--shadow);
       transition: transform 0.18s ease, border-color 0.18s ease;
     }
     a.card:hover {
-      transform: translateY(-2px);
       border-color: var(--accent);
+      background: var(--accent-soft);
     }
+    a.card:focus-visible {outline:2px solid var(--accent); outline-offset:3px;}
     .number {
-      color: var(--danger);
-      font-size: 42px;
-      font-weight: 800;
-      margin-bottom: 36px;
+      color: var(--accent);
+      font-size: 30px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      margin-bottom: 20px;
     }
     h2 {
       margin: 0 0 8px;
@@ -94,6 +96,78 @@
       main { padding-top: 28px; }
     }
   </style>
+
+<style id="presentation-style">
+  :root {
+    --bg:#f3f5f6; --panel:#ffffff; --ink:#172126; --muted:#58666e;
+    --line:#d5dde1; --accent:#0b6268; --accent-soft:#e5f1f2;
+    --danger:#b33a31; --red:#b33a31; --warn:#ad7013; --ok:#2a7450;
+    --blue:#244465; --orange:#c74d24; --green:#6f9f48;
+    --shadow:none;
+  }
+  body {font-family:"Segoe UI",Arial,sans-serif; font-size:16px;
+    background:var(--bg); color:var(--ink); line-height:1.45;}
+  body * {letter-spacing:0;}
+  main, main.app {width:100%; max-width:1480px; margin:0 auto; padding:24px;}
+  .hero {padding:0; margin:0 0 24px; background:transparent; border:0;
+    border-radius:0; box-shadow:none;}
+  .eyebrow {font-size:13px; font-weight:700; color:var(--accent); margin:0 0 8px; letter-spacing:0;}
+  h1 {font-size:40px; font-weight:700; line-height:1.15; margin:8px 0 12px;}
+  h2 {font-size:24px; font-weight:700; line-height:1.25;}
+  h3, .line-title {font-size:16px; font-weight:700; line-height:1.35;}
+  .lead, .subtitle {font-size:16px; line-height:1.5; max-width:none; color:var(--muted);}
+  .meta {font-size:13px; line-height:1.5; margin-top:12px; overflow-wrap:anywhere;}
+  .section, .panel {background:var(--panel); border:1px solid var(--line);
+    border-radius:8px; box-shadow:none; margin-top:20px;}
+  .section {padding:20px;}
+  .section-head {gap:16px; margin-bottom:16px;}
+  .dynamic-summary {border-color:var(--line) !important; box-shadow:none !important;}
+  .summary-title {color:var(--accent); font-size:12px; font-weight:700;}
+  .kpis {gap:12px; margin-top:18px;}
+  .kpi, .card, .universe {border-radius:8px; background:#fff;
+    border:1px solid var(--line); padding:16px; box-shadow:none; min-width:0;}
+  .kpi, .card {min-height:96px;}
+  .kpi strong, .card strong, .universe strong {font-size:30px; line-height:1.15;
+    color:var(--accent); font-weight:700; font-variant-numeric:tabular-nums;}
+  #kpi-total, #kpi-horas, #kpi-prom, #kpi-abiertos {color:var(--accent);}
+  #kpi-vencidos, #kpi-holgura, #global-out, #filtered-out {color:var(--danger);}
+  #kpi-4h, #kpi-8h {color:var(--warn);}
+  #kpi-tiempo, #kpi-24h, #global-in, #filtered-in {color:var(--ok);}
+  .kpi span, .card span, .universe span {font-size:14px; color:var(--muted);
+    display:block; margin-top:6px; line-height:1.4;}
+  .note, .footer-note, .rank-meta, .message, .executive-text {font-size:14px; line-height:1.5;}
+  .filters {gap:12px; grid-template-columns:repeat(auto-fit,minmax(180px,1fr));}
+  label {font-family:inherit; font-size:12px; font-weight:700; color:var(--muted); letter-spacing:0;}
+  input, select, button {font-family:inherit;}
+  .filters input:not([type="checkbox"]), .filters select,
+  .multi-button, .filter-toggle {font-family:inherit; font-size:14px;
+    height:44px; min-height:44px; padding:10px 12px; line-height:20px;
+    border-radius:8px; border:1px solid var(--line); color:var(--ink);}
+  .panel.filters {padding:20px;}
+  .filters input:focus-visible, select:focus-visible, button:focus-visible {
+    outline:2px solid var(--accent); outline-offset:2px;}
+  .multi-panel, .multi-menu, .chart-card, .line-panel, .message-card,
+  .rank-item, .legend-item {border-radius:8px; box-shadow:none;}
+  .message-card, .rank-item, .legend-item {background:#fff;}
+  .donut-center strong {font-size:30px;}
+  .donut-center span {font-size:12px;}
+  th, td {font-size:14px;}
+  th {color:var(--muted); background:#f0f4f5;}
+  svg text {font-family:"Segoe UI",Arial,sans-serif;}
+  @media(max-width:700px) {
+    main, main.app {width:100%; padding:16px;}
+    h1 {font-size:30px;} h2 {font-size:22px;}
+    .section {padding:16px;}
+    .kpis {grid-template-columns:repeat(2,minmax(0,1fr));}
+    .kpi, .card {padding:12px; min-height:100px;}
+    .kpi strong, .card strong {font-size:26px; overflow-wrap:anywhere;}
+    .card:has(#kpi-horas), .card:has(#kpi-prom) {grid-column:1 / -1;}
+    .filters {grid-template-columns:1fr;}
+    .section-head {flex-wrap:wrap;}
+    .universe {min-width:0; width:100%;}
+  }
+</style>
+
 </head>
 <body>
   <main>
@@ -130,8 +204,31 @@
     </section>
 
     <footer>
-      Ultima actualizacion: 2026-10-07 20:12
+      Ultima actualizacion: 2026-10-07 20:24
     </footer>
   </main>
+
+<script id="presentation-numbers">
+(() => {
+  function formatPresentationMetrics() {
+    document.querySelectorAll('.kpis strong, .universe strong, .donut-center strong').forEach(el => {
+      const text = el.textContent.trim();
+      if (!/^[+-]?[\d,]+(?:\.\d+)?%?$/.test(text)) return;
+      const value = Number(text.replace(/[,%%]/g, ''));
+      const percent = text.endsWith('%');
+      const hours = ['kpi-horas', 'kpi-prom'].includes(el.id);
+      const digits = percent ? 1 : hours ? 2 : 0;
+      el.textContent = value.toLocaleString('en-US', {
+        minimumFractionDigits:digits, maximumFractionDigits:digits
+      }) + (percent ? '%' : '');
+    });
+  }
+  formatPresentationMetrics();
+  for (const event of ['input', 'change', 'click']) {
+    document.addEventListener(event, () => queueMicrotask(formatPresentationMetrics), true);
+  }
+})();
+</script>
+
 </body>
 </html>
